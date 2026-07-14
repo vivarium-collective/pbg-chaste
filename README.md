@@ -7,6 +7,11 @@ models as a single, parametrized process-bigraph `Process`, so you can compose
 any *sub-cellular × multi-cellular* combination and run it inside a larger
 bigraph.
 
+**[▶ View the interactive demo report](https://vivarium-collective.github.io/pbg-chaste/)**
+— real Chaste simulations across mesh / vertex / node populations × uniform /
+stochastic / Tyson–Novak / Delta–Notch cell cycles, with play/pause cell-shape
+animations, Plotly growth curves, and interactive bigraph diagrams.
+
 The wrapper drives the **real Chaste C++ engine** — it does not reimplement
 any of Chaste's mechanics or ODEs. Chaste is notoriously hard to build from
 source (PETSc, VTK, HDF5, Boost, a long CMake build), so this package runs the
@@ -134,6 +139,10 @@ ChasteSimulationProcess                       chaste/pychaste container
 Nothing is reimplemented — every number comes from the real Chaste solver.
 
 ## Demo
+
+The rendered report is **live at
+[vivarium-collective.github.io/pbg-chaste](https://vivarium-collective.github.io/pbg-chaste/)**
+(source: [`demo/report.html`](demo/report.html)). Regenerate it locally with:
 
 ```bash
 python demo/demo_report.py   # writes + opens demo/report.html
