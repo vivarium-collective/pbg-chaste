@@ -176,6 +176,7 @@ def _extract(ctx):
     dn = ctx["cycle"] == "delta_notch"
     target = int(pop.GetNumRealCells())
     positions, phases = [], {}
+    per_cell_delta = []  # aligned 1:1 with positions (for spatial colouring)
     deltas, notches = [], []
     found, i, cap = 0, 0, ctx["cap"]
     while found < target and i < cap:
@@ -184,24 +185,29 @@ def _extract(ctx):
             found += 1
             try:
                 loc = pop.GetLocationOfCellCentre(cell)
-                positions.append([float(loc[0]), float(loc[1])])
             except Exception:
-                pass
+                i += 1
+                continue
+            positions.append([float(loc[0]), float(loc[1])])
+            d = 0.0
+            if dn:
+                try:
+                    d = float(cell.GetCellData().GetItem("delta"))
+                    deltas.append(d)
+                    notches.append(float(cell.GetCellData().GetItem("notch")))
+                except Exception:
+                    d = 0.0
+            per_cell_delta.append(d)
             try:
                 ph = str(cell.GetCellCycleModel().GetCurrentCellCyclePhase())
                 phases[ph] = phases.get(ph, 0.0) + 1.0
             except Exception:
                 pass
-            if dn:
-                try:
-                    deltas.append(float(cell.GetCellData().GetItem("delta")))
-                    notches.append(float(cell.GetCellData().GetItem("notch")))
-                except Exception:
-                    pass
         i += 1
     out = {
         "num_cells": target,
         "positions": positions,
+        "per_cell_delta": per_cell_delta,
         "phase_counts": phases,
         "mean_delta": sum(deltas) / len(deltas) if deltas else 0.0,
         "mean_notch": sum(notches) / len(notches) if notches else 0.0,

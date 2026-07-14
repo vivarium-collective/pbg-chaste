@@ -78,30 +78,34 @@ CONFIGS = [
 
 def run_config(cfg, quick=False):
     steps = 3 if quick else cfg["steps"]
-    result = {"cfg": cfg, "ok": False, "series": [], "final_positions": [],
-              "final_delta": [], "error": None, "elapsed": 0.0}
+    result = {"cfg": cfg, "ok": False, "series": [], "frames": [],
+              "error": None, "elapsed": 0.0}
     t0 = time.time()
     try:
         s = runtime.ChasteSession(
             {"population": cfg["population"], "cell_cycle": cfg["cell_cycle"],
-             "width": cfg["width"], "height": cfg["height"], "seed": 0},
+             "width": cfg["width"], "height": cfg["height"], "seed": 0,
+             "sampling_multiple": 12},
             step_timeout=180.0, start_timeout=420.0,
         )
         init = s.start()
         result["series"].append({"time": 0.0, "num_cells": init["num_cells"],
                                  "mean_delta": init.get("mean_delta", 0.0),
                                  "mean_notch": init.get("mean_notch", 0.0)})
-        last = init
         for _ in range(steps):
-            last = s.step(interval=cfg["interval"], stiffness=0.0)
+            st = s.step(interval=cfg["interval"], stiffness=0.0)
             result["series"].append({
-                "time": last["time"], "num_cells": last["num_cells"],
-                "mean_delta": last.get("mean_delta", 0.0),
-                "mean_notch": last.get("mean_notch", 0.0),
+                "time": st["time"], "num_cells": st["num_cells"],
+                "mean_delta": st.get("mean_delta", 0.0),
+                "mean_notch": st.get("mean_notch", 0.0),
             })
-        result["final_positions"] = last.get("positions", [])
-        # per-cell delta for the spatial colouring (delta_notch only)
-        result["final_delta"] = last.get("_per_cell_delta", [])
+            pos = st.get("positions", [])
+            result["frames"].append({
+                "time": st["time"],
+                "x": [p[0] for p in pos],
+                "y": [p[1] for p in pos],
+                "delta": st.get("per_cell_delta", []),
+            })
         s.close()
         result["ok"] = True
     except Exception as e:
@@ -113,16 +117,83 @@ def run_config(cfg, quick=False):
 # ---------------------------------------------------------------------------
 # HTML rendering
 # ---------------------------------------------------------------------------
-def _bigraph_svg(cfg):
-    """Interactive bigraph fragment for one composite (bigraph-viz2)."""
+def _bigraph_svg(cfg, first=False):
+    """Interactive bigraph fragment for one composite (bigraph-viz2).
+
+    The FIRST fragment on the page must inline the shared CSS/JS bundle
+    (dedupe=False); later fragments drop their copy (dedupe=True). Getting
+    this backwards yields empty shells that render nothing.
+    """
     try:
         from bigraph_viz2 import emit_html  # type: ignore
         doc = build_document(cfg["population"], cfg["cell_cycle"],
                              width=cfg["width"], height=cfg["height"])
         return emit_html(doc, id=f"bg_{cfg['id']}", height="360px",
-                         inspector=True, dedupe=True)
+                         inspector=True, dedupe=not first)
     except Exception:
         return _bigraph_fallback(cfg)
+
+
+def animation_html(pid, frames, accent, is_dn):
+    """A Plotly play/pause animation of the cell population over time."""
+    frames = [f for f in frames if f["x"]]
+    if not frames:
+        return '<div class="muted">no spatial frames captured</div>'
+    all_x = [v for f in frames for v in f["x"]]
+    all_y = [v for f in frames for v in f["y"]]
+    pad = 1.0
+    xr = [min(all_x) - pad, max(all_x) + pad]
+    yr = [min(all_y) - pad, max(all_y) + pad]
+
+    def marker(f):
+        if is_dn:
+            return dict(size=18, color=f["delta"], colorscale="YlOrRd",
+                        cmin=0.0, cmax=1.0, showscale=True,
+                        colorbar=dict(title="Delta", thickness=12),
+                        line=dict(color="#334155", width=1))
+        return dict(size=16, color=accent, opacity=0.85,
+                    line=dict(color="white", width=1.5))
+
+    def trace(f):
+        return dict(x=f["x"], y=f["y"], mode="markers", type="scatter",
+                    marker=marker(f))
+
+    pframes = [dict(name=f"{i}", data=[trace(f)]) for i, f in enumerate(frames)]
+    steps = [dict(label=f'{f["time"]:.0f}', method="animate",
+                  args=[[f"{i}"], dict(mode="immediate",
+                                       frame=dict(duration=0, redraw=True))])
+             for i, f in enumerate(frames)]
+    layout = dict(
+        margin=dict(t=24, r=12, b=44, l=44), height=360,
+        xaxis=dict(range=xr, scaleanchor="y", scaleratio=1, title="x"),
+        yaxis=dict(range=yr, title="y"),
+        paper_bgcolor="white", plot_bgcolor="#fafafa",
+        updatemenus=[dict(type="buttons", showactive=False, x=0.02, y=1.12,
+                          xanchor="left", direction="left",
+                          buttons=[
+            dict(label="▶ play", method="animate",
+                 args=[None, dict(frame=dict(duration=650, redraw=True),
+                                  transition=dict(duration=180),
+                                  fromcurrent=True)]),
+            dict(label="❚❚ pause", method="animate",
+                 args=[[None], dict(mode="immediate",
+                                    frame=dict(duration=0, redraw=False))]),
+        ])],
+        sliders=[dict(active=0, x=0.12, len=0.85, y=-0.02,
+                      currentvalue=dict(prefix="t = ", suffix=" h",
+                                        font=dict(size=13)),
+                      steps=steps)],
+    )
+    return f"""
+    <div id="an_{pid}" class="chart"></div>
+    <script>
+    (function(){{
+      var frames = {json.dumps(pframes)};
+      Plotly.newPlot('an_{pid}', frames[0].data, {json.dumps(layout)},
+        {{displayModeBar:false, responsive:true}})
+        .then(function(){{ Plotly.addFrames('an_{pid}', frames); }});
+    }})();
+    </script>"""
 
 
 def _bigraph_fallback(cfg):
@@ -174,7 +245,7 @@ def json_tree(obj, depth=0):
 
 
 def render(results, meta):
-    panels = "\n".join(render_panel(r) for r in results)
+    panels = "\n".join(render_panel(r, i) for i, r in enumerate(results))
     nav = "\n".join(
         f'<a href="#{r["cfg"]["id"]}">{html.escape(r["cfg"]["title"])}</a>'
         for r in results
@@ -190,10 +261,11 @@ def render(results, meta):
     )
 
 
-def render_panel(r):
+def render_panel(r, idx=0):
     cfg = r["cfg"]
     pid = cfg["id"]
     accent = cfg["accent"]
+    is_dn = cfg["cell_cycle"] == "delta_notch"
     if not r["ok"]:
         body = (f'<div class="err">Run did not complete: '
                 f'<code>{html.escape(r["error"] or "?")}</code><br>'
@@ -202,7 +274,6 @@ def render_panel(r):
         chart = metrics = spatial = ""
     else:
         series = r["series"]
-        is_dn = cfg["cell_cycle"] == "delta_notch"
         times = [p["time"] for p in series]
         counts = [p["num_cells"] for p in series]
         n0, n1 = counts[0], counts[-1]
@@ -237,26 +308,12 @@ def render_panel(r):
             xaxis:{{title:'time (h)'}}, yaxis:{{title:'number of cells'}},
             paper_bgcolor:'white', plot_bgcolor:'#fafafa'}},
           {{displayModeBar:false, responsive:true}});</script>{chart_extra}"""
-        # spatial layout
-        pos = r["final_positions"]
-        if pos:
-            xs = [p[0] for p in pos]
-            ys = [p[1] for p in pos]
-            spatial = f"""
-            <div id="sp_{pid}" class="chart"></div>
-            <script>Plotly.newPlot('sp_{pid}', [{{
-              x:{xs}, y:{ys}, mode:'markers', type:'scatter',
-              marker:{{size:16, color:'{accent}', opacity:0.8,
-                       line:{{color:'white',width:1.5}}}} }}],
-              {{margin:{{t:24,r:12,b:36,l:44}}, height:320, title:'final cell layout',
-                xaxis:{{scaleanchor:'y',scaleratio:1}}, paper_bgcolor:'white',
-                plot_bgcolor:'#fafafa'}}, {{displayModeBar:false, responsive:true}});</script>"""
-        else:
-            spatial = ""
+        # spatial animation ("video") of the cells over time
+        spatial = animation_html(pid, r["frames"], accent, is_dn)
 
     doc = build_document(cfg["population"], cfg["cell_cycle"],
                         width=cfg["width"], height=cfg["height"])
-    bg = _bigraph_svg(cfg)
+    bg = _bigraph_svg(cfg, first=(idx == 0))
     tree = json_tree(doc)
     return f"""
     <section id="{pid}" class="panel" style="--accent:{accent}">
@@ -268,7 +325,7 @@ def render_panel(r):
       {metrics if r['ok'] else ''}
       <div class="grid2">
         <div class="card"><h3>Population dynamics</h3>{chart if r['ok'] else body}</div>
-        <div class="card"><h3>Spatial state</h3>{spatial if r['ok'] else '<div class="muted">—</div>'}</div>
+        <div class="card"><h3>Simulation ▶ (cells over time)</h3>{spatial if r['ok'] else '<div class="muted">—</div>'}</div>
       </div>
       <div class="grid2">
         <div class="card"><h3>Bigraph wiring</h3>{bg}</div>
