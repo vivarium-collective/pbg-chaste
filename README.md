@@ -154,10 +154,13 @@ Delta/Notch patterning, alongside an interactive bigraph diagram.
 | **vertex** | ✅ | ✅ | ✅ | ⛔ |
 
 `vertex + delta_notch` is not supported: vertex Delta-Notch requires Chaste's
-separate **edge-based SRN framework** (`DeltaNotchEdgeSrnModel` +
-`VertexBasedPopulationSrn`), whereas the wrapper uses the Voronoi-neighbour
-`DeltaNotchSrnModel` (valid for mesh/node). Constructing that combination
-raises a clear `NotImplementedError`; use `mesh`/`node` for Delta-Notch.
+separate **edge-based SRN framework** — a `DeltaNotchEdgeSrnModel` per cell
+edge — whereas the wrapper uses the Voronoi-neighbour `DeltaNotchSrnModel`
+(valid for mesh/node). Building the per-edge SRNs means enumerating each
+element's edges via `mesh.GetElement(i)`, but this PyChaste build does not
+register `VertexElement<2,2>` to Python, so element edges are unreachable and
+the combination is genuinely blocked upstream. Constructing it raises a clear
+`NotImplementedError`; use `mesh`/`node` for Delta-Notch.
 
 ## Limitations
 

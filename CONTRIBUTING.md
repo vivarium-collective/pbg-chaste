@@ -33,7 +33,13 @@ OpenMP topology segfault under emulation.
 - Manually-built cells (needed for the Delta-Notch SRN) segfault unless the
   Python cell-cycle / SRN objects are kept alive — the server stashes them.
 - `TearDownNotebookTest` segfaults after a real run; extract state first.
-- `vertex + delta_notch` needs Chaste's edge-based SRN framework — unsupported.
+- `vertex + delta_notch` needs Chaste's edge-based SRN framework (a
+  `DeltaNotchEdgeSrnModel` per cell edge). Building those requires
+  `mesh.GetElement(i)` to enumerate edges, but this PyChaste build does not
+  register `VertexElement<2,2>` to Python — so it is blocked upstream, not just
+  unwired. If a future PyChaste exposes VertexElement, wire it in
+  `_chaste_server._make_delta_notch_cells` behind a `population == "vertex"`
+  branch using `CellSrnModel.AddEdgeSrn` + `DeltaNotchEdgeTrackingModifier2`.
 
 ## Releasing to PyPI
 

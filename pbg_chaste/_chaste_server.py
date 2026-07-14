@@ -93,12 +93,16 @@ def build(params):
     if dn and population == "vertex":
         # The non-edge DeltaNotchSrnModel/DeltaNotchTrackingModifier used here
         # couples via Voronoi neighbours (mesh/node). Vertex Delta-Notch needs
-        # Chaste's edge-based SRN framework (DeltaNotchEdgeSrnModel +
-        # VertexBasedPopulationSrn), which this wrapper does not yet wire.
+        # Chaste's edge-based SRN framework (a DeltaNotchEdgeSrnModel per cell
+        # edge). Building those requires enumerating each element's edges via
+        # mesh.GetElement(i) — but this PyChaste build does not register the
+        # VertexElement<2,2> return type, so element edges are unreachable from
+        # Python and the per-edge SRNs cannot be constructed. Blocked upstream.
         raise RuntimeError(
-            "vertex + delta_notch requires Chaste's edge-based SRN framework "
-            "(DeltaNotchEdgeSrnModel), not yet supported; use population "
-            "'mesh' or 'node' for the delta_notch cell cycle."
+            "vertex + delta_notch requires Chaste's edge-based SRN framework, "
+            "which needs per-element edge access (mesh.GetElement); this "
+            "PyChaste build does not expose VertexElement to Python, so it is "
+            "unsupported. Use population 'mesh' or 'node' for delta_notch."
         )
     # Every Chaste object built here must be kept alive for the lifetime of the
     # simulation: the population/simulator hold C++ pointers into the mesh,
