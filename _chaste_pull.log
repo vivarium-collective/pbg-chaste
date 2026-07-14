@@ -1,0 +1,51 @@
+Using default tag: latest
+latest: Pulling from chaste/pychaste
+cb259a83ac3d: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+69f83f5b68f3: Pulling fs layer
+ecb8e61af0c0: Pulling fs layer
+253415e507b9: Pulling fs layer
+983667a9b825: Pulling fs layer
+a44d938a6629: Pulling fs layer
+dfa2be7245d4: Pulling fs layer
+9a3a3a6c4f13: Pulling fs layer
+9128bd9f3bc4: Pulling fs layer
+fdb0a4bb0aae: Pulling fs layer
+ca7bda9750c6: Pulling fs layer
+5be369cabf77: Pulling fs layer
+e6e30e932521: Pulling fs layer
+44136fa355b3: Download complete
+44136fa355b3: Download complete
+6bbea98350b1: Download complete
+5be369cabf77: Download complete
+fdb0a4bb0aae: Download complete
+69f83f5b68f3: Download complete
+253415e507b9: Download complete
+ecb8e61af0c0: Download complete
+4f4fb700ef54: Download complete
+9a3a3a6c4f13: Download complete
+e6e30e932521: Download complete
+dfa2be7245d4: Download complete
+f64f79bb8fb4: Download complete
+9128bd9f3bc4: Download complete
+a44d938a6629: Download complete
+cb259a83ac3d: Download complete
+fdb0a4bb0aae: Pull complete
+9a3a3a6c4f13: Pull complete
+9128bd9f3bc4: Pull complete
+a44d938a6629: Pull complete
+cb259a83ac3d: Pull complete
+5be369cabf77: Pull complete
+69f83f5b68f3: Pull complete
+253415e507b9: Pull complete
+ecb8e61af0c0: Pull complete
+4f4fb700ef54: Pull complete
+e6e30e932521: Pull complete
+983667a9b825: Download complete
+983667a9b825: Pull complete
+ca7bda9750c6: Download complete
+dfa2be7245d4: Pull complete
+ca7bda9750c6: Pull complete
+Digest: sha256:ab209bc1be9e970535cdb6427132d9899784cc6b4ba2b5b321e20301a4340a95
+Status: Downloaded newer image for chaste/pychaste:latest
+docker.io/chaste/pychaste:latest

@@ -1,0 +1,436 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pbg-chaste · sub-cellular × multi-cellular</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+:root{--bg:#f7f8fa;--fg:#1e293b;--mut:#64748b;--card:#fff;--line:#e5e7eb}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+background:var(--bg);color:var(--fg);line-height:1.55}
+header{padding:48px 24px 28px;max-width:1180px;margin:0 auto}
+h1{font-size:2.1rem;margin:0 0 6px}
+.lede{color:var(--mut);font-size:1.05rem;max-width:760px}
+.chips{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;
+font-size:.85rem;color:var(--mut)}
+.chip b{color:var(--fg)}
+nav{position:sticky;top:0;z-index:10;background:rgba(247,248,250,.92);backdrop-filter:blur(8px);
+border-bottom:1px solid var(--line);padding:10px 24px}
+nav .in{max-width:1180px;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap}
+nav a{font-size:.85rem;color:var(--mut);text-decoration:none;padding:5px 12px;border-radius:8px;
+border:1px solid transparent}
+nav a:hover{background:#fff;border-color:var(--line);color:var(--fg)}
+main{max-width:1180px;margin:0 auto;padding:24px}
+.panel{background:transparent;margin:0 0 40px;padding:24px 0;border-top:3px solid var(--accent)}
+.panel-head h2{margin:14px 0 2px;font-size:1.5rem}
+.sub{color:var(--mut);margin:0 0 6px}
+.blurb{max-width:820px;color:#334155}
+.metrics{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 20px;min-width:120px}
+.mv{font-size:1.7rem;font-weight:700}
+.ml{color:var(--mut);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 12px;font-size:1rem}
+.chart{width:100%}
+.muted{color:var(--mut)}
+.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:14px}
+.jtree{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8rem;background:#fbfbfd;
+border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;max-height:360px}
+.j-key{color:#7c3aed} .j-str{color:#059669} .j-num{color:#2563eb}
+.j-bool{color:#d97706} .j-null{color:#94a3b8} .j-brace{color:#334155}
+.j-toggle{cursor:pointer} .j-toggle:hover{background:#eef}
+.j-body.collapsed{display:none}
+.bg-fallback{display:flex;flex-direction:column;gap:10px;align-items:center;padding:20px}
+.bg-node{border:2px solid #cbd5e1;border-radius:10px;padding:10px 16px;text-align:center;font-size:.85rem}
+.bg-node.proc{font-weight:600} .bg-node span{color:var(--mut);font-size:.78rem}
+.bg-arrows{display:flex;gap:24px;color:var(--mut);font-size:.78rem;text-align:center}
+footer{max-width:1180px;margin:0 auto;padding:24px;color:var(--mut);font-size:.85rem;
+border-top:1px solid var(--line)}
+code{font-family:'SF Mono',Menlo,monospace;font-size:.85em;background:#f1f5f9;padding:1px 5px;border-radius:5px}
+</style></head><body>
+<header>
+  <h1>Chaste as a process-bigraph composite</h1>
+  <p class="lede">One parametrized <code>ChasteSimulationProcess</code> wraps the real
+  Chaste engine. Each panel below couples a <b>multi-cellular</b> population method
+  (mesh / node / vertex) with a <b>sub-cellular</b> cell-cycle model
+  (uniform / stochastic / Tyson–Novak ODE / Delta–Notch SRN) — the same wrapper,
+  different combinations.</p>
+  <div class="chips">
+    <span class="chip">engine: <b>real Chaste (chaste/pychaste)</b></span>
+    <span class="chip"><b>4/4</b> combinations ran</span>
+    <span class="chip">total wall-clock: <b>23s</b></span>
+    <span class="chip">generated <b>2026-07-14 15:04</b></span>
+  </div>
+</header>
+<nav><div class="in"><a href="#mesh_uniform">Mesh · Uniform cycle</a>
+<a href="#node_stochastic">Node · Stochastic cycle</a>
+<a href="#vertex_tyson_novak">Vertex · Tyson–Novak ODE</a>
+<a href="#mesh_delta_notch">Mesh · Delta–Notch SRN</a></div></nav>
+<main>
+    <section id="mesh_uniform" class="panel" style="--accent:#2563eb">
+      <div class="panel-head">
+        <h2>Mesh · Uniform cycle</h2>
+        <p class="sub">Voronoi/spring tissue, simple proliferation</p>
+      </div>
+      <p class="blurb">A mesh-based (overlapping-Voronoi + linear spring) population with the simplest sub-cellular clock: a uniformly-drawn total cycle time. Cells proliferate and the disc spreads.</p>
+      
+        <div class="metrics">
+          <div class="metric"><div class="mv" style="color:#2563eb">31</div><div class="ml">cells (final)</div></div>
+          <div class="metric"><div class="mv" style="color:#2563eb">1.94×</div><div class="ml">growth</div></div>
+          <div class="metric"><div class="mv" style="color:#2563eb">12</div><div class="ml">sim time (h)</div></div>
+          <div class="metric"><div class="mv" style="color:#2563eb">3s</div><div class="ml">wall-clock</div></div>
+        </div>
+      <div class="grid2">
+        <div class="card"><h3>Population dynamics</h3>
+        <div id="ct_mesh_uniform" class="chart"></div>
+        <script>Plotly.newPlot('ct_mesh_uniform', [{"x": [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0], "y": [16, 17, 21, 24, 28, 30, 31], "mode": "lines+markers", "name": "cell count", "line": {"color": "#2563eb", "width": 3}}],
+          {margin:{t:24,r:12,b:36,l:44}, height:280,
+            xaxis:{title:'time (h)'}, yaxis:{title:'number of cells'},
+            paper_bgcolor:'white', plot_bgcolor:'#fafafa'},
+          {displayModeBar:false, responsive:true});</script></div>
+        <div class="card"><h3>Spatial state</h3>
+            <div id="sp_mesh_uniform" class="chart"></div>
+            <script>Plotly.newPlot('sp_mesh_uniform', [{
+              x:[0.101609538313877, 0.6921498352762961, 2.4647831487343788, 3.320195392952139, 0.33427759861433204, 1.3593787139188138, 3.068873261132068, 3.9112198622357432, -0.6708692225158879, 1.376139630106821, 1.898058353110551, 3.1000188446336168, -0.5317953536641135, 1.2824615589121084, 2.3554535388039053, 3.792529519970318, 1.1319735344332897, 0.993941660370363, 1.6252035242394252, 2.215720545759959, 2.1161370986333514, -0.338063676867712, 3.9844973530353163, 1.0022813634917438, 0.430284156120085, 2.2295757086699126, 2.7451427508118496, 0.14819040573534548, 3.353535199138843, 3.09238030634185, 0.05709092261331585], y:[-0.8002862114908087, -0.04780158855851487, -0.2585748382709846, -0.6406910055082131, 0.8138943757231237, 0.774928140850686, 1.1013302857317033, 0.39856754230489944, 1.191250443276136, 2.2339928558379163, 2.8706929153662135, 1.9200125191672597, 2.37436055758678, 3.7923463251421565, 3.6847236148997684, 2.537093905664733, -0.9895153746598621, 3.042074553388925, -0.1708294076255952, -1.0739065684544236, 1.7063132094093503, 0.14935464979080856, 1.4746442703847211, 1.5406364609428465, 2.395568125098381, 0.6813671367092354, 2.693519093458609, 3.3304284280411993, 3.4615147760103353, 0.25224961327044126, 1.6468974520121809], mode:'markers', type:'scatter',
+              marker:{size:16, color:'#2563eb', opacity:0.8,
+                       line:{color:'white',width:1.5}} }],
+              {margin:{t:24,r:12,b:36,l:44}, height:320, title:'final cell layout',
+                xaxis:{scaleanchor:'y',scaleratio:1}, paper_bgcolor:'white',
+                plot_bgcolor:'#fafafa'}, {displayModeBar:false, responsive:true});</script></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Bigraph wiring</h3><div id="bgv2-bg_mesh_uniform" class="bgv2-host" style="height:360px;width:100%"></div><script type="application/json" id="bgv2-bg_mesh_uniform-data">{"chaste": {"_type": "process", "address": "local:ChasteSimulationProcess", "config": {"population": "mesh", "cell_cycle": "uniform", "width": 4, "height": 4, "seed": 0}, "interval": 1.0, "inputs": {"spring_stiffness": ["stores", "spring_stiffness"]}, "outputs": {"num_cells": ["stores", "num_cells"], "positions": ["stores", "positions"], "phase_counts": ["stores", "phase_counts"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"]}}, "stores": {"spring_stiffness": 0.0, "num_cells": 0, "positions": [], "phase_counts": {}, "mean_delta": 0.0, "mean_notch": 0.0}, "emitter": {"_type": "step", "address": "local:RAMEmitter", "config": {"emit": {"num_cells": "integer", "mean_delta": "float", "mean_notch": "float", "time": "float"}}, "inputs": {"num_cells": ["stores", "num_cells"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"], "time": ["global_time"]}}}</script><script>(function(){var el=document.getElementById("bgv2-bg_mesh_uniform");var raw=document.getElementById("bgv2-bg_mesh_uniform-data").textContent;if(!window.BigraphViz){  console.error('bigraph-viz2: bundle not loaded — call emit_html with dedupe=False first');  return;}window.BigraphViz.mount(el, JSON.parse(raw), {"inspector": true, "maxRowWidth": 480, "id": "bg_mesh_uniform", "materialize": true});})();</script></div>
+        <div class="card"><h3>PBG document</h3><pre class="jtree"><span class="j-brace j-toggle">{</span><span class="j-body">
+  <span class="j-key">"chaste"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"process"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:ChasteSimulationProcess"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"population"</span>: <span class="j-str">"mesh"</span>,
+      <span class="j-key">"cell_cycle"</span>: <span class="j-str">"uniform"</span>,
+      <span class="j-key">"width"</span>: <span class="j-num">4</span>,
+      <span class="j-key">"height"</span>: <span class="j-num">4</span>,
+      <span class="j-key">"seed"</span>: <span class="j-num">0</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"interval"</span>: <span class="j-num">1.0</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"spring_stiffness"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"spring_stiffness"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"outputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"positions"</span><span class="j-brace">]</span>,
+      <span class="j-key">"phase_counts"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"phase_counts"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"stores"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"spring_stiffness"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"num_cells"</span>: <span class="j-num">0</span>,
+    <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-brace">]</span>,
+    <span class="j-key">"phase_counts"</span>: <span class="j-brace">{}</span>,
+    <span class="j-key">"mean_delta"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"mean_notch"</span>: <span class="j-num">0.0</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"emitter"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"step"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:RAMEmitter"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"emit"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+        <span class="j-key">"num_cells"</span>: <span class="j-str">"integer"</span>,
+        <span class="j-key">"mean_delta"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"mean_notch"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"time"</span>: <span class="j-str">"float"</span>
+      </span><span class="j-brace">}</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>,
+      <span class="j-key">"time"</span>: <span class="j-brace">[</span><span class="j-str">"global_time"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>
+</span><span class="j-brace">}</span></pre></div>
+      </div>
+    </section>
+
+    <section id="node_stochastic" class="panel" style="--accent:#0d9488">
+      <div class="panel-head">
+        <h2>Node · Stochastic cycle</h2>
+        <p class="sub">Overlapping spheres, exponential G1</p>
+      </div>
+      <p class="blurb">A node-based (overlapping spheres, cut-off spring) population with an exponentially-distributed G1 phase — a genuinely stochastic sub-cellular timer driving heterogeneous division.</p>
+      
+        <div class="metrics">
+          <div class="metric"><div class="mv" style="color:#0d9488">36</div><div class="ml">cells (final)</div></div>
+          <div class="metric"><div class="mv" style="color:#0d9488">2.25×</div><div class="ml">growth</div></div>
+          <div class="metric"><div class="mv" style="color:#0d9488">12</div><div class="ml">sim time (h)</div></div>
+          <div class="metric"><div class="mv" style="color:#0d9488">5s</div><div class="ml">wall-clock</div></div>
+        </div>
+      <div class="grid2">
+        <div class="card"><h3>Population dynamics</h3>
+        <div id="ct_node_stochastic" class="chart"></div>
+        <script>Plotly.newPlot('ct_node_stochastic', [{"x": [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0], "y": [16, 19, 22, 24, 28, 30, 36], "mode": "lines+markers", "name": "cell count", "line": {"color": "#0d9488", "width": 3}}],
+          {margin:{t:24,r:12,b:36,l:44}, height:280,
+            xaxis:{title:'time (h)'}, yaxis:{title:'number of cells'},
+            paper_bgcolor:'white', plot_bgcolor:'#fafafa'},
+          {displayModeBar:false, responsive:true});</script></div>
+        <div class="card"><h3>Spatial state</h3>
+            <div id="sp_node_stochastic" class="chart"></div>
+            <script>Plotly.newPlot('sp_node_stochastic', [{
+              x:[0.05003872854172399, 1.0137745064037162, 2.02335222825685, 2.74978106545563, -0.7673555318116785, 1.5713176370899749, 3.151427361478132, 4.092722439960014, -0.7152814041012233, 0.04930730695115017, 2.325113678065719, 2.8791674874821642, 0.7746156681032644, 0.9811976476617063, 3.8898224262182914, 3.865278564333425, 1.5882467275178014, 0.8692927286535312, 1.3843885100431972, 3.6981787690095214, 2.4572309322829966, 3.150497893070517, 2.0895625038958356, 0.7932536847785537, -0.7629308034646641, 0.0897440913302754, 3.462324347240453, 2.9309220138516334, 0.7947486844986388, 0.09534627727639311, 2.027404582999035, 4.484524749685124, 2.3479588282868122, 0.03389571386313677, 1.7318491354521728, 1.5958779794568323], y:[0.3539692175856092, -1.04785750075354, -1.255202727313791, -0.5722458441372831, -0.12006236886669455, 1.3178648666240402, 0.4149230280417634, 0.5559421671862731, 1.88259459806326, 1.3288648250377404, 2.7887145180373003, 1.8812474395675, 2.858589546998008, 3.8111784685179777, 3.181414948202824, 2.1342347555297954, 0.49599684845636716, -0.09760713432387917, 2.2856769864941713, -0.3387136868659794, 1.0807025714951002, 2.6480058153631383, 1.9679528395792047, 0.8396327464070986, 0.8778257675494494, -0.6324308596821379, 1.2633562363258979, 3.5408222985014204, 1.7747030281515457, 2.337295045966027, 3.8470466445169356, 1.4202447783558632, 0.21369057475777384, 3.3762226524695054, -0.4077132990828039, 3.106572072783127], mode:'markers', type:'scatter',
+              marker:{size:16, color:'#0d9488', opacity:0.8,
+                       line:{color:'white',width:1.5}} }],
+              {margin:{t:24,r:12,b:36,l:44}, height:320, title:'final cell layout',
+                xaxis:{scaleanchor:'y',scaleratio:1}, paper_bgcolor:'white',
+                plot_bgcolor:'#fafafa'}, {displayModeBar:false, responsive:true});</script></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Bigraph wiring</h3><div id="bgv2-bg_node_stochastic" class="bgv2-host" style="height:360px;width:100%"></div><script type="application/json" id="bgv2-bg_node_stochastic-data">{"chaste": {"_type": "process", "address": "local:ChasteSimulationProcess", "config": {"population": "node", "cell_cycle": "stochastic", "width": 4, "height": 4, "seed": 0}, "interval": 1.0, "inputs": {"spring_stiffness": ["stores", "spring_stiffness"]}, "outputs": {"num_cells": ["stores", "num_cells"], "positions": ["stores", "positions"], "phase_counts": ["stores", "phase_counts"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"]}}, "stores": {"spring_stiffness": 0.0, "num_cells": 0, "positions": [], "phase_counts": {}, "mean_delta": 0.0, "mean_notch": 0.0}, "emitter": {"_type": "step", "address": "local:RAMEmitter", "config": {"emit": {"num_cells": "integer", "mean_delta": "float", "mean_notch": "float", "time": "float"}}, "inputs": {"num_cells": ["stores", "num_cells"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"], "time": ["global_time"]}}}</script><script>(function(){var el=document.getElementById("bgv2-bg_node_stochastic");var raw=document.getElementById("bgv2-bg_node_stochastic-data").textContent;if(!window.BigraphViz){  console.error('bigraph-viz2: bundle not loaded — call emit_html with dedupe=False first');  return;}window.BigraphViz.mount(el, JSON.parse(raw), {"inspector": true, "maxRowWidth": 480, "id": "bg_node_stochastic", "materialize": true});})();</script></div>
+        <div class="card"><h3>PBG document</h3><pre class="jtree"><span class="j-brace j-toggle">{</span><span class="j-body">
+  <span class="j-key">"chaste"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"process"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:ChasteSimulationProcess"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"population"</span>: <span class="j-str">"node"</span>,
+      <span class="j-key">"cell_cycle"</span>: <span class="j-str">"stochastic"</span>,
+      <span class="j-key">"width"</span>: <span class="j-num">4</span>,
+      <span class="j-key">"height"</span>: <span class="j-num">4</span>,
+      <span class="j-key">"seed"</span>: <span class="j-num">0</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"interval"</span>: <span class="j-num">1.0</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"spring_stiffness"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"spring_stiffness"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"outputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"positions"</span><span class="j-brace">]</span>,
+      <span class="j-key">"phase_counts"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"phase_counts"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"stores"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"spring_stiffness"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"num_cells"</span>: <span class="j-num">0</span>,
+    <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-brace">]</span>,
+    <span class="j-key">"phase_counts"</span>: <span class="j-brace">{}</span>,
+    <span class="j-key">"mean_delta"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"mean_notch"</span>: <span class="j-num">0.0</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"emitter"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"step"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:RAMEmitter"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"emit"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+        <span class="j-key">"num_cells"</span>: <span class="j-str">"integer"</span>,
+        <span class="j-key">"mean_delta"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"mean_notch"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"time"</span>: <span class="j-str">"float"</span>
+      </span><span class="j-brace">}</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>,
+      <span class="j-key">"time"</span>: <span class="j-brace">[</span><span class="j-str">"global_time"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>
+</span><span class="j-brace">}</span></pre></div>
+      </div>
+    </section>
+
+    <section id="vertex_tyson_novak" class="panel" style="--accent:#7c3aed">
+      <div class="panel-head">
+        <h2>Vertex · Tyson–Novak ODE</h2>
+        <p class="sub">Confluent epithelium, biochemical oscillator</p>
+      </div>
+      <p class="blurb">A vertex-based (Nagai–Honda polygonal) confluent epithelium whose sub-cellular model is the Tyson–Novak ODE system — a real biochemical cell-cycle oscillator solved per cell, gating division on the underlying protein dynamics.</p>
+      
+        <div class="metrics">
+          <div class="metric"><div class="mv" style="color:#7c3aed">272</div><div class="ml">cells (final)</div></div>
+          <div class="metric"><div class="mv" style="color:#7c3aed">30.22×</div><div class="ml">growth</div></div>
+          <div class="metric"><div class="mv" style="color:#7c3aed">6</div><div class="ml">sim time (h)</div></div>
+          <div class="metric"><div class="mv" style="color:#7c3aed">11s</div><div class="ml">wall-clock</div></div>
+        </div>
+      <div class="grid2">
+        <div class="card"><h3>Population dynamics</h3>
+        <div id="ct_vertex_tyson_novak" class="chart"></div>
+        <script>Plotly.newPlot('ct_vertex_tyson_novak', [{"x": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "y": [9, 17, 28, 56, 96, 144, 272], "mode": "lines+markers", "name": "cell count", "line": {"color": "#7c3aed", "width": 3}}],
+          {margin:{t:24,r:12,b:36,l:44}, height:280,
+            xaxis:{title:'time (h)'}, yaxis:{title:'number of cells'},
+            paper_bgcolor:'white', plot_bgcolor:'#fafafa'},
+          {displayModeBar:false, responsive:true});</script></div>
+        <div class="card"><h3>Spatial state</h3>
+            <div id="sp_vertex_tyson_novak" class="chart"></div>
+            <script>Plotly.newPlot('sp_vertex_tyson_novak', [{
+              x:[-1.7862062141666981, 1.0144580412668676, 5.152194881443583, -1.23410672412301, 2.8088513107166238, 7.141602205947697, -5.447952540240948, 1.4249630029123748, 6.208104387110612, 7.178854937374879, 0.9072099984699107, -0.34951990581356407, 2.4809064301005854, -4.36129393990816, 6.46695682679511, 0.07577222373948711, 2.438653944160332, -0.6511549910245125, 3.977387366616068, 6.52958482578499, -3.0203384147800767, -3.249552877890526, 2.16612161550538, 1.2521428798288554, 4.622438132880371, 3.7278343106950187, -0.21976879351949696, -4.695923078229245, 8.422432517309831, 4.264996479255858, -3.09653039298069, -2.2586666572866214, 6.280203918604426, 4.112205381208118, 2.1812507346074095, 2.2222915670391776, 6.373804459764996, 6.11499188462079, 4.38014205983522, 6.916973196535619, -1.3696095691808845, -0.02516660968717843, -4.651463937342162, -0.13715880245629442, -0.9062488829007196, 2.515574752326948, 3.2498540297156127, 0.15054661479955822, 1.4322378186401847, 1.8252047329342909, 2.664336351862711, 5.649145839827414, -3.112099719892306, -2.147139698700134, -0.784621210629901, -3.657915341530879, 8.886896019159414, 7.667898407745002, 8.10991382790156, 4.997092871819848, -4.321897266680395, -1.7116760275433185, -2.01280179077792, -1.9187960698755626, 7.4999733274519285, 3.935429100655779, 6.115975630928777, 4.697860284433114, 1.35911907197921, -1.0400634547185355, 1.0674840050449683, 0.4898994520019683, 4.153894951437943, 7.975301668471723, 3.8223906612710308, 5.423090713462098, 5.038010682683877, 5.2712556766778595, 3.508506583888912, 5.980806597769967, -2.9852081052100212, 2.683907564669602, -4.672939935451078, -1.683500033368346, -2.0475385952863916, -0.6265118838402521, -5.445445383102643, -1.0739033060413883, 0.005616557902059893, 0.9017165016243791, 1.2577755958490868, 0.055051051630042404, -1.105962601798578, 1.6978181205435676, 3.859018025543314, 0.17695926906739223, 2.8738719734210507, 3.6727763990564166, 4.749030432483023, 2.886095271580629, 1.8195957649844121, 3.112695827424213, 3.586197964192042, 4.90510821506688, -2.5169798190445993, -3.587563940836043, -1.4592905991634195, -5.381940966535377, -2.256197410088874, -3.1383293018416714, -1.516453244122318, -4.529373589060928, 8.498024162631124, 7.150573582257292, 8.163973022949301, 5.611498691496067, 7.58117372976145, 8.556157535541344, 8.949604268542462, 3.996983199714246, -5.362545678064024, 0.7361517309740984, -3.248871278019266, -3.0897751946170047, -4.101262063623531, -1.7060816581838427, -2.657502526875101, -3.1162283172862977, 6.32210897222615, 3.3630377417728345, 6.619512327736356, 4.72158111491398, 7.046429635305246, 3.0594402990576715, 5.347737142737605, 4.44438781631235, 0.8282805591520801, 0.13606897385011651, 1.8242055086859925, 2.315087874328382, 1.0664022632644035, -0.353526291686732, 1.2339065685387947, 1.3642098319520146, 5.7196515888233925, 6.973015497726751, 4.462933971089747, 6.738975805668766, 6.2351951723272965, 6.105425051072023, 3.7586054781905, 7.445425451238636, 4.7008653175567865, 7.89782987626133, 3.3434037203877196, 5.736334417790371, 5.317165784743526, 4.771932620325074, 4.021932831664928, 5.434134273905007, -2.040452340961535, 1.0958111758267566, -3.7957400720587238, -2.5503340325023283, -1.183718109624325, 0.4846161198122632, -5.470469970180313, 0.33945468602186374, -2.2805854405174975, 1.9101813500869276, -4.02246934282646, -0.9817683674347131, -2.36935540620109, 0.02538101614214605, -4.540721239020361, -0.7913399541435222, 1.1158004137209856, 0.3711401381405035, 1.9662594542833987, 1.6312937347727898, -0.9597536035723035, 3.144719592702141, 2.899079796044901, -0.49484880681473586, 0.44429229840011986, 0.5463348305194106, 2.311535886157951, 0.619150030458941, -2.268573597205385, 1.8673668285230103, 3.2570974729452127, -0.6152505333831928, 2.278081869761518, 2.8552933171399797, 5.087373756363788, 4.423684382601937, 0.8859790370293072, 2.2731650728589554, 3.0226463750286454, 5.2119612083370805, 2.2528835324807104, 4.3511751020754765, 4.410630154376259, 2.8228221639562454, 1.8797621907722961, 3.1988336131109967, 3.469588542597061, 5.464858300561385, -1.7579851784351495, -4.646907054128408, -0.5852708112793019, -4.065355470668116, -3.764932275258266, -2.657224172126, -0.5938265471075361, -3.739748681647707, -3.1823737736618365, -3.7316024014889027, -1.4058005156559386, -5.55663954974664, -2.9237671497014084, -2.744072134258384, -1.9653122056022982, -3.717243723691772, 7.315896161846834, 6.270321041163188, 9.016380270717002, 4.849405471737181, 8.342143478463589, 7.027927301884033, 7.981884310587254, 5.635924406038303, 7.996507494478276, 6.986475529607505, 8.881102765936284, 5.454692437677428, 7.6941075637434775, 8.293644909631391, 8.84391508833838, 4.739466874363799, -5.646359848747339, -0.474227497891206, -3.6511929463962467, -2.9381990309703494, -4.866175587428441, -1.238862601190937, -1.8149900989627197, -1.8570425547404106, -4.9817407335447825, 0.17786553767671454, -3.635683015084835, -2.4300813201302836, -4.511638356289073, -1.4625357060106101, -2.416400464661304, -2.533687611772642, 6.361187089229759, 1.8849134742544285, 5.906171858950227, 3.5826127266508148, 8.028858793226899, 3.79107558743405, 6.5753536847361325, 5.071100778960199, 6.815527958593581, 3.045811169748085, 7.191282546462343, 4.177032542098919, 7.634172077446679, 3.1452027441369927, 5.7317530446615645, 3.834251952102357], y:[-5.202501051040188, -6.157471050772871, -5.473794016041613, -0.07357498224515396, -2.091021680304657, -1.6206706033832252, 2.0796879303203517, 2.7148080922796103, 2.876622473201957, -3.4617327115744807, 0.9241114724660231, -4.22914408414237, 2.5877764503200633, -2.7661868531197964, 1.5742996391101516, 5.344370278951719, 6.603783433376237, 6.452869020902828, -3.5181322355273283, -0.8049931205600334, 1.9054340799522345, 3.112566910614557, -5.95308640429269, -1.8989626427679618, -0.1990337029394556, 5.035989810150847, -3.1578081974145515, -1.295229735912044, 0.5591828464197336, 2.4260643496031933, 4.151451439158174, 5.869345688443791, 5.025510076047516, 5.859961002025816, 4.840171486615283, 7.590931696054067, -4.141071684430482, -2.4629501999113486, -1.0982461912661552, 0.8570804347292453, 1.0613713683549002, 1.6700148613920207, -0.10180712235018341, 3.951987509634603, -5.538176699239921, -3.3222467083852427, -5.758791834941156, -0.45943468844261903, -0.40679094969307483, 3.408625834414674, 0.35020929711755855, 4.39688179530287, -3.457046096031276, -1.8986022279030703, -1.6478170234312408, -0.2124335362313419, -0.663059700221178, 3.3175428859690945, 2.002427337055545, 3.4183761729892193, 4.155238371673554, 5.25202506579427, 4.013616122856643, 7.200533816547846, 4.222531836556356, 7.224538555070545, 6.366005462756285, 7.420078511134252, 4.311026884810936, 7.517382925618545, 6.568435515504269, 8.185610789831129, -5.586831659757002, -3.0402011149509, -2.2315925205567613, -0.9075026701730904, -3.9023839613629465, -2.225266097863632, 0.12827024140057514, 0.777676077505542, 0.7222142500356775, 1.690526377835739, 2.724942424283472, 3.0635454529335653, 1.8304893864532326, 2.5129171203824647, 1.3666823495079936, 4.192118217637678, -5.568611000033922, -3.1586803468409244, -4.316263520122107, -1.7946866649243018, -3.590354649285417, -3.4695565943348234, -4.616250983312648, 0.6452027375801674, -0.6897386474978737, 3.1963662852166257, 1.0512506668017445, 5.340686780660984, 0.33236548802891747, 3.8779802915673502, 1.6544419676541144, 5.707081002083407, -4.728199948582771, -2.2224701214430875, -2.9000112146665695, -0.9538685250020653, -2.795394381143462, -0.9306872201022549, -1.180971214020163, 0.8748384945357748, -1.4383995362889208, 2.2268704791531153, 1.215292654393016, 2.289030825604257, -0.3457520939269909, 3.296303388082905, 2.06512487385812, 4.126511656352403, 3.242327386931596, 5.840526920535594, 5.075786357474701, 6.623274108858502, 4.923471361400797, 6.208674207102727, 4.6577927945744575, 7.3519580557459685, 4.1399125556130105, 6.6787652263779975, 5.776822968917532, 6.5691586742039005, 5.072052313580592, 7.905270943428133, 6.892619558660796, 8.238277424381334, 3.5224582619056277, 7.119244243651167, 5.806004612986479, 8.560403794602623, 5.180824898131917, 7.989469364879048, 7.470805363465904, 8.516407680428165, -4.6964289862748645, -2.432073437035547, -2.851952932059585, 0.05029943456677444, -3.3602768460144232, -1.5779168483575616, -0.6248919907677296, 1.4969677146621923, -4.69000305190684, -2.13480553139644, -1.4552152278674262, -0.15483074740243724, -3.140934456243156, -1.7134267099277838, 0.7437587262673065, 1.5220081947966357, 0.19961364569228585, 1.7110021858078213, 2.3792712403625864, 3.5732480442896657, 2.0314683299449072, 2.368821202578708, 0.5605315357422829, 4.581136829569082, 1.067867676517065, 1.9248392005662007, 3.4730463575859796, 3.4028815928158314, 2.611767885784657, 3.076635053976478, 1.7801090310008807, 4.924911034885266, -5.401362151267625, -3.812355489618862, -5.066126633423212, -1.1612620105087035, -4.687399908736571, -2.85415535413906, -5.016026847371327, 0.007046399358488831, -4.775232495374664, -2.467336917325575, -4.246840772843936, -1.1264612446610724, -3.681416068590079, -2.5425141395273747, -3.975037627672969, 1.020512024193666, -1.598472400620906, 3.131949147455197, 0.4139789904247898, 5.043119303550868, -0.003722521802300205, 3.9411752990863618, 0.9780439546522679, 4.9284571976956295, -0.46982381419223773, 3.358861061223961, 1.670318991346484, 6.057699099351598, 1.0215678684279776, 4.547262476090747, 2.3790111576577297, 6.153185396440166, -4.276303571709523, -2.0924750966690104, -2.539502521951863, -0.8195121630512394, -3.1661003043279257, -1.4564338367162095, -0.9402801622852707, 0.4707164024300874, -4.280318853986632, -1.56673924459724, -2.0944189961555746, -0.20231022356540246, -2.4904243354168085, -0.28449640665904424, -0.674885800374246, 1.3519304202001292, -0.9815085581026608, 2.13425142753184, 0.25181374296984416, 2.4752600078981644, -0.24449642130407148, 3.642666652902206, 2.650448459686511, 3.67861193561606, -1.0960685616414165, 2.81370635571986, 1.2861426632024684, 2.8951879008427808, 0.40902909826262907, 3.88363097186384, 2.7255078755058633, 4.181666283898415, 2.6381446971024545, 5.650557725250936, 4.383842171299374, 5.912612182762002, 4.46310793199332, 5.68499373420381, 4.578003799585047, 7.860511925139894, 3.7067687664420106, 6.209785805029326, 5.604703036325752, 6.715424566338591, 5.339762090438413, 6.734074063856186, 5.197679767542496, 7.673238961964602, 3.427416134051009, 6.7631980771236755, 5.505293082119629, 6.015010936075287, 4.529881545079104, 7.764093738725663, 6.692945365417273, 7.8806632312999705, 4.440815613834543, 7.19215489265102, 5.919058215169272, 6.6772025899365595, 5.189537678057305, 8.58759795676097, 7.277717790111683, 8.5074169858824], mode:'markers', type:'scatter',
+              marker:{size:16, color:'#7c3aed', opacity:0.8,
+                       line:{color:'white',width:1.5}} }],
+              {margin:{t:24,r:12,b:36,l:44}, height:320, title:'final cell layout',
+                xaxis:{scaleanchor:'y',scaleratio:1}, paper_bgcolor:'white',
+                plot_bgcolor:'#fafafa'}, {displayModeBar:false, responsive:true});</script></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Bigraph wiring</h3><div id="bgv2-bg_vertex_tyson_novak" class="bgv2-host" style="height:360px;width:100%"></div><script type="application/json" id="bgv2-bg_vertex_tyson_novak-data">{"chaste": {"_type": "process", "address": "local:ChasteSimulationProcess", "config": {"population": "vertex", "cell_cycle": "tyson_novak", "width": 3, "height": 3, "seed": 0}, "interval": 1.0, "inputs": {"spring_stiffness": ["stores", "spring_stiffness"]}, "outputs": {"num_cells": ["stores", "num_cells"], "positions": ["stores", "positions"], "phase_counts": ["stores", "phase_counts"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"]}}, "stores": {"spring_stiffness": 0.0, "num_cells": 0, "positions": [], "phase_counts": {}, "mean_delta": 0.0, "mean_notch": 0.0}, "emitter": {"_type": "step", "address": "local:RAMEmitter", "config": {"emit": {"num_cells": "integer", "mean_delta": "float", "mean_notch": "float", "time": "float"}}, "inputs": {"num_cells": ["stores", "num_cells"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"], "time": ["global_time"]}}}</script><script>(function(){var el=document.getElementById("bgv2-bg_vertex_tyson_novak");var raw=document.getElementById("bgv2-bg_vertex_tyson_novak-data").textContent;if(!window.BigraphViz){  console.error('bigraph-viz2: bundle not loaded — call emit_html with dedupe=False first');  return;}window.BigraphViz.mount(el, JSON.parse(raw), {"inspector": true, "maxRowWidth": 480, "id": "bg_vertex_tyson_novak", "materialize": true});})();</script></div>
+        <div class="card"><h3>PBG document</h3><pre class="jtree"><span class="j-brace j-toggle">{</span><span class="j-body">
+  <span class="j-key">"chaste"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"process"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:ChasteSimulationProcess"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"population"</span>: <span class="j-str">"vertex"</span>,
+      <span class="j-key">"cell_cycle"</span>: <span class="j-str">"tyson_novak"</span>,
+      <span class="j-key">"width"</span>: <span class="j-num">3</span>,
+      <span class="j-key">"height"</span>: <span class="j-num">3</span>,
+      <span class="j-key">"seed"</span>: <span class="j-num">0</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"interval"</span>: <span class="j-num">1.0</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"spring_stiffness"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"spring_stiffness"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"outputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"positions"</span><span class="j-brace">]</span>,
+      <span class="j-key">"phase_counts"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"phase_counts"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"stores"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"spring_stiffness"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"num_cells"</span>: <span class="j-num">0</span>,
+    <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-brace">]</span>,
+    <span class="j-key">"phase_counts"</span>: <span class="j-brace">{}</span>,
+    <span class="j-key">"mean_delta"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"mean_notch"</span>: <span class="j-num">0.0</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"emitter"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"step"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:RAMEmitter"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"emit"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+        <span class="j-key">"num_cells"</span>: <span class="j-str">"integer"</span>,
+        <span class="j-key">"mean_delta"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"mean_notch"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"time"</span>: <span class="j-str">"float"</span>
+      </span><span class="j-brace">}</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>,
+      <span class="j-key">"time"</span>: <span class="j-brace">[</span><span class="j-str">"global_time"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>
+</span><span class="j-brace">}</span></pre></div>
+      </div>
+    </section>
+
+    <section id="mesh_delta_notch" class="panel" style="--accent:#dc2626">
+      <div class="panel-head">
+        <h2>Mesh · Delta–Notch SRN</h2>
+        <p class="sub">Lateral-inhibition patterning</p>
+      </div>
+      <p class="blurb">Each cell carries a Delta–Notch sub-cellular reaction network coupled to its neighbours (Collier lateral inhibition). Watch the mean Delta/Notch signals evolve as the pattern forms.</p>
+      
+        <div class="metrics">
+          <div class="metric"><div class="mv" style="color:#dc2626">30</div><div class="ml">cells (final)</div></div>
+          <div class="metric"><div class="mv" style="color:#dc2626">1.20×</div><div class="ml">growth</div></div>
+          <div class="metric"><div class="mv" style="color:#dc2626">6</div><div class="ml">sim time (h)</div></div>
+          <div class="metric"><div class="mv" style="color:#dc2626">3s</div><div class="ml">wall-clock</div></div>
+        </div>
+      <div class="grid2">
+        <div class="card"><h3>Population dynamics</h3>
+        <div id="ct_mesh_delta_notch" class="chart"></div>
+        <script>Plotly.newPlot('ct_mesh_delta_notch', [{"x": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "y": [25, 25, 25, 25, 25, 26, 30], "mode": "lines+markers", "name": "cell count", "line": {"color": "#dc2626", "width": 3}}],
+          {margin:{t:24,r:12,b:36,l:44}, height:280,
+            xaxis:{title:'time (h)'}, yaxis:{title:'number of cells'},
+            paper_bgcolor:'white', plot_bgcolor:'#fafafa'},
+          {displayModeBar:false, responsive:true});</script>
+            <div id="dn_mesh_delta_notch" class="chart"></div>
+            <script>Plotly.newPlot('dn_mesh_delta_notch', [
+              {x:[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], y:[0.0, 0.37828719801924565, 0.14682178920381073, 0.06625944171053023, 0.054903936697083135, 0.07282836844337794, 0.07659297258275154], mode:'lines+markers', name:'mean Delta', line:{color:'#dc2626',width:3}},
+              {x:[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], y:[0.0, 0.9787408529748179, 0.8743550981427067, 0.607442070917943, 0.372344256959293, 0.32634694871169884, 0.35228187102194314], mode:'lines+markers', name:'mean Notch', line:{color:'#2563eb',width:3}}
+            ], {margin:{t:24,r:12,b:36,l:44}, height:280, legend:{orientation:'h'},
+                 xaxis:{title:'time (h)'}, yaxis:{title:'SRN signal'},
+                 paper_bgcolor:'white', plot_bgcolor:'#fafafa'}, {displayModeBar:false, responsive:true});
+            </script></div>
+        <div class="card"><h3>Spatial state</h3>
+            <div id="sp_mesh_delta_notch" class="chart"></div>
+            <script>Plotly.newPlot('sp_mesh_delta_notch', [{
+              x:[0.088954218918202, 1.2479637226783566, 2.09606318848099, 2.98508662106696, 2.548025716424405, 0.902157978290552, 1.7198281900049532, 2.6083927842739594, 3.6030181653883937, 4.669565604924142, 0.34568677482792365, 1.2193088970090633, 2.0670770762972652, 2.942358352214454, 3.7110359087258398, 0.6429176763429065, 1.485022823420633, 2.40811012864731, 3.329533230290106, 4.261201762587529, -0.1783861056881711, 0.611822908216161, 1.727793817439369, 2.8391922679421433, 3.9578497852530985, 4.959702051856186, 4.9320796291581885, 3.6730576346589148, 4.512906232762964, 4.047412539265241], y:[0.7688203399493236, 0.0029325990201498125, 0.21865903031069972, 0.3231307755439444, -0.4699940595812461, 0.8028997859746551, 0.961712377719391, 1.0832054806536981, 0.9978154167565939, 1.2269195446761443, 1.533286997396704, 1.7145830335689243, 1.8824287861994888, 1.9079865120380202, 1.9791529799595264, 2.3847330812566043, 2.660348771897645, 2.78799850071844, 2.8401888459140134, 2.6885992269997168, 2.136761207151505, 3.18764006013552, 3.5555010669676963, 3.6756370591633973, 3.5931291746984106, 1.9863169740506732, 3.1641140786689994, -0.0949735248628288, 0.668961429100188, 1.7905710166840882], mode:'markers', type:'scatter',
+              marker:{size:16, color:'#dc2626', opacity:0.8,
+                       line:{color:'white',width:1.5}} }],
+              {margin:{t:24,r:12,b:36,l:44}, height:320, title:'final cell layout',
+                xaxis:{scaleanchor:'y',scaleratio:1}, paper_bgcolor:'white',
+                plot_bgcolor:'#fafafa'}, {displayModeBar:false, responsive:true});</script></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Bigraph wiring</h3><div id="bgv2-bg_mesh_delta_notch" class="bgv2-host" style="height:360px;width:100%"></div><script type="application/json" id="bgv2-bg_mesh_delta_notch-data">{"chaste": {"_type": "process", "address": "local:ChasteSimulationProcess", "config": {"population": "mesh", "cell_cycle": "delta_notch", "width": 5, "height": 5, "seed": 0}, "interval": 1.0, "inputs": {"spring_stiffness": ["stores", "spring_stiffness"]}, "outputs": {"num_cells": ["stores", "num_cells"], "positions": ["stores", "positions"], "phase_counts": ["stores", "phase_counts"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"]}}, "stores": {"spring_stiffness": 0.0, "num_cells": 0, "positions": [], "phase_counts": {}, "mean_delta": 0.0, "mean_notch": 0.0}, "emitter": {"_type": "step", "address": "local:RAMEmitter", "config": {"emit": {"num_cells": "integer", "mean_delta": "float", "mean_notch": "float", "time": "float"}}, "inputs": {"num_cells": ["stores", "num_cells"], "mean_delta": ["stores", "mean_delta"], "mean_notch": ["stores", "mean_notch"], "time": ["global_time"]}}}</script><script>(function(){var el=document.getElementById("bgv2-bg_mesh_delta_notch");var raw=document.getElementById("bgv2-bg_mesh_delta_notch-data").textContent;if(!window.BigraphViz){  console.error('bigraph-viz2: bundle not loaded — call emit_html with dedupe=False first');  return;}window.BigraphViz.mount(el, JSON.parse(raw), {"inspector": true, "maxRowWidth": 480, "id": "bg_mesh_delta_notch", "materialize": true});})();</script></div>
+        <div class="card"><h3>PBG document</h3><pre class="jtree"><span class="j-brace j-toggle">{</span><span class="j-body">
+  <span class="j-key">"chaste"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"process"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:ChasteSimulationProcess"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"population"</span>: <span class="j-str">"mesh"</span>,
+      <span class="j-key">"cell_cycle"</span>: <span class="j-str">"delta_notch"</span>,
+      <span class="j-key">"width"</span>: <span class="j-num">5</span>,
+      <span class="j-key">"height"</span>: <span class="j-num">5</span>,
+      <span class="j-key">"seed"</span>: <span class="j-num">0</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"interval"</span>: <span class="j-num">1.0</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"spring_stiffness"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"spring_stiffness"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"outputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"positions"</span><span class="j-brace">]</span>,
+      <span class="j-key">"phase_counts"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"phase_counts"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"stores"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"spring_stiffness"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"num_cells"</span>: <span class="j-num">0</span>,
+    <span class="j-key">"positions"</span>: <span class="j-brace">[</span><span class="j-brace">]</span>,
+    <span class="j-key">"phase_counts"</span>: <span class="j-brace">{}</span>,
+    <span class="j-key">"mean_delta"</span>: <span class="j-num">0.0</span>,
+    <span class="j-key">"mean_notch"</span>: <span class="j-num">0.0</span>
+  </span><span class="j-brace">}</span>,
+  <span class="j-key">"emitter"</span>: <span class="j-brace j-toggle">{</span><span class="j-body">
+    <span class="j-key">"_type"</span>: <span class="j-str">"step"</span>,
+    <span class="j-key">"address"</span>: <span class="j-str">"local:RAMEmitter"</span>,
+    <span class="j-key">"config"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"emit"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+        <span class="j-key">"num_cells"</span>: <span class="j-str">"integer"</span>,
+        <span class="j-key">"mean_delta"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"mean_notch"</span>: <span class="j-str">"float"</span>,
+        <span class="j-key">"time"</span>: <span class="j-str">"float"</span>
+      </span><span class="j-brace">}</span>
+    </span><span class="j-brace">}</span>,
+    <span class="j-key">"inputs"</span>: <span class="j-brace j-toggle" data-collapsed="1">{</span><span class="j-body">
+      <span class="j-key">"num_cells"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"num_cells"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_delta"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_delta"</span><span class="j-brace">]</span>,
+      <span class="j-key">"mean_notch"</span>: <span class="j-brace">[</span><span class="j-str">"stores"</span>, <span class="j-str">"mean_notch"</span><span class="j-brace">]</span>,
+      <span class="j-key">"time"</span>: <span class="j-brace">[</span><span class="j-str">"global_time"</span><span class="j-brace">]</span>
+    </span><span class="j-brace">}</span>
+  </span><span class="j-brace">}</span>
+</span><span class="j-brace">}</span></pre></div>
+      </div>
+    </section></main>
+<footer>
+  Generated by <code>demo/demo_report.py</code>. Each panel is a genuine Chaste
+  <code>OffLatticeSimulation</code> stepped through a resident
+  <code>chaste/pychaste</code> container — no reimplementation. Upstream:
+  <code>github.com/Chaste/Chaste</code>.
+</footer>
+<script>
+document.querySelectorAll('.j-toggle').forEach(function(t){
+  if(t.dataset.collapsed){var b=t.nextElementSibling; if(b&&b.classList.contains('j-body'))b.classList.add('collapsed');}
+  t.addEventListener('click',function(){var b=t.nextElementSibling;
+    if(b&&b.classList.contains('j-body'))b.classList.toggle('collapsed');});
+});
+</script>
+</body></html>
