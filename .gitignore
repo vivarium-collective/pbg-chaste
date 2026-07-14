@@ -23,3 +23,6 @@ investigations/*/.run.lock
 workspace/reports/assets/*
 !workspace/reports/assets/.keep
 .superpowers/brainstorm/
+
+# scratch
+_chaste_pull.log
