@@ -7,6 +7,13 @@ through the chaste/pychaste Docker image.
 """
 
 from .processes import ChasteSimulationProcess, POPULATIONS, CELL_CYCLES
-from . import composites  # noqa: F401  (registers @composite_generator entries)
+
+# Registering the @composite_generator entries needs pbg_superpowers (provided
+# by the pbg ecosystem / plugin). Guard it so the core Process stays importable
+# even in a bare install without pbg_superpowers.
+try:
+    from . import composites  # noqa: F401
+except ImportError:  # pragma: no cover
+    composites = None
 
 __all__ = ["ChasteSimulationProcess", "POPULATIONS", "CELL_CYCLES"]

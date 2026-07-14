@@ -20,17 +20,19 @@ dependencies = [
     "process-bigraph>=0.0.66",
     # Chaste itself runs inside the chaste/pychaste Docker image, not as a
     # pip dependency — see README. Docker is the only host requirement.
+]
+
+[project.optional-dependencies]
+# Dashboard / workspace integration (vivarium-workbench is not on PyPI; install
+# from a sibling checkout). Not needed to run the wrapper or its composites.
+workspace = [
     "bigraph-viz>=2.0.3",
     "pyyaml>=6.0",
     "jsonschema[format-nongpl]>=4.21",
     "jinja2>=3.1",
     "pypdf>=4.0",
-    "matplotlib",
-    "plotly",
     "vivarium-workbench",
 ]
-
-[project.optional-dependencies]
 dev = ["pytest", "matplotlib", "plotly", "bigraph-viz2"]
 
 [project.urls]
