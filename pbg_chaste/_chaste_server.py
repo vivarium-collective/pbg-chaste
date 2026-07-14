@@ -22,6 +22,7 @@ Key correctness notes learned from the live engine:
   * ``TearDownNotebookTest`` segfaults after a real run, so we extract state
     and write results BEFORE any teardown, and never tear down mid-session.
 """
+import glob
 import json
 import os
 import time
@@ -175,11 +176,54 @@ def _apply_stiffness(ctx, stiffness):
         pass
 
 
+def _vertex_polygons():
+    """Read the real cell polygons Chaste just wrote to VTK (vertex pops).
+
+    VertexElement<2,2> is not exposed to Python, so element→node connectivity
+    is unreachable via the API; instead we parse the newest results_*.vtu the
+    population writes, which contains the exact polygon of every cell.
+    """
+    try:
+        import vtk  # available inside chaste/pychaste
+    except Exception:
+        return []
+    root = os.environ.get("CHASTE_TEST_OUTPUT", "/work/out")
+    vtus = glob.glob(os.path.join(root, "**", "*.vtu"), recursive=True)
+    if not vtus:
+        return []
+    newest = max(vtus, key=os.path.getmtime)
+    reader = vtk.vtkXMLUnstructuredGridReader()
+    reader.SetFileName(newest)
+    reader.Update()
+    grid = reader.GetOutput()
+    polys = []
+    for ci in range(grid.GetNumberOfCells()):
+        ids = grid.GetCell(ci).GetPointIds()
+        poly = []
+        for k in range(ids.GetNumberOfIds()):
+            p = grid.GetPoint(ids.GetId(k))
+            poly.append([float(p[0]), float(p[1])])
+        if len(poly) >= 3:
+            polys.append(poly)
+    return polys
+
+
+def _cell_radius(ctx, i):
+    """Per-cell radius for the touching-circle rendering (node/mesh)."""
+    if ctx["population"] == "node":
+        try:
+            return float(ctx["pop"].GetNode(i).GetRadius())
+        except Exception:
+            return 0.5
+    return 0.5  # mesh: nominal, matches the spring rest length
+
+
 def _extract(ctx):
     pop = ctx["pop"]
     dn = ctx["cycle"] == "delta_notch"
+    vertex = ctx["population"] == "vertex"
     target = int(pop.GetNumRealCells())
-    positions, phases = [], {}
+    positions, phases, radii = [], {}, []
     per_cell_delta = []  # aligned 1:1 with positions (for spatial colouring)
     deltas, notches = [], []
     found, i, cap = 0, 0, ctx["cap"]
@@ -193,6 +237,7 @@ def _extract(ctx):
                 i += 1
                 continue
             positions.append([float(loc[0]), float(loc[1])])
+            radii.append(_cell_radius(ctx, i))
             d = 0.0
             if dn:
                 try:
@@ -211,6 +256,8 @@ def _extract(ctx):
     out = {
         "num_cells": target,
         "positions": positions,
+        "radii": radii,
+        "polygons": _vertex_polygons() if vertex else [],
         "per_cell_delta": per_cell_delta,
         "phase_counts": phases,
         "mean_delta": sum(deltas) / len(deltas) if deltas else 0.0,

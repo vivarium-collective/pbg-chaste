@@ -162,6 +162,9 @@ class ChasteSession:
         env_args = []
         for k, v in EMULATION_ENV.items():
             env_args += ["-e", f"{k}={v}"]
+        # Direct Chaste's VTK/output into the mounted work dir so the server can
+        # read back the real cell polygons (vertex populations) it writes.
+        env_args += ["-e", "CHASTE_TEST_OUTPUT=/work/out"]
         cmd = [
             _docker(), "run", "-d", "--rm", "--platform", CHASTE_PLATFORM,
             *env_args, "-v", f"{self.workdir}:/work", "-w", "/work",

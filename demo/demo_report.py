@@ -104,6 +104,8 @@ def run_config(cfg, quick=False):
                 "time": st["time"],
                 "x": [p[0] for p in pos],
                 "y": [p[1] for p in pos],
+                "radii": st.get("radii", []),
+                "polygons": st.get("polygons", []),
                 "delta": st.get("per_cell_delta", []),
             })
         s.close()
@@ -134,46 +136,112 @@ def _bigraph_svg(cfg, first=False):
         return _bigraph_fallback(cfg)
 
 
+def _hex_rgba(hex_color, alpha):
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
+# YlOrRd-style stops for Delta colouring (0 -> pale, 1 -> deep red)
+_YLORRD = [(0.0, (255, 255, 204)), (0.35, (254, 178, 76)),
+           (0.7, (240, 59, 32)), (1.0, (150, 0, 26))]
+
+
+def _delta_color(t, alpha=0.9):
+    t = max(0.0, min(1.0, t))
+    for (a, ca), (b, cb) in zip(_YLORRD, _YLORRD[1:]):
+        if t <= b:
+            f = (t - a) / (b - a) if b > a else 0.0
+            r = int(ca[0] + f * (cb[0] - ca[0]))
+            g = int(ca[1] + f * (cb[1] - ca[1]))
+            bl = int(ca[2] + f * (cb[2] - ca[2]))
+            return f"rgba({r},{g},{bl},{alpha})"
+    return f"rgba(150,0,26,{alpha})"
+
+
+def _circle(cx, cy, r, k=22):
+    import math
+    return [[cx + r * math.cos(2 * math.pi * j / k),
+             cy + r * math.sin(2 * math.pi * j / k)] for j in range(k)]
+
+
+def _fill_trace(loops, fillcolor, edge="#334155"):
+    """One Plotly fill='toself' trace holding many None-separated polygons."""
+    xs, ys = [], []
+    for loop in loops:
+        for p in loop:
+            xs.append(p[0]); ys.append(p[1])
+        xs.append(loop[0][0]); ys.append(loop[0][1])  # close
+        xs.append(None); ys.append(None)
+    return dict(x=xs, y=ys, mode="lines", fill="toself", fillcolor=fillcolor,
+                line=dict(color=edge, width=1.4), hoverinfo="skip",
+                showlegend=False)
+
+
 def animation_html(pid, frames, accent, is_dn):
-    """A Plotly play/pause animation of the cell population over time."""
-    frames = [f for f in frames if f["x"]]
+    """Play/pause animation drawing the REAL cell shapes over time.
+
+    Vertex populations render as filled polygons (read from Chaste's VTK);
+    node/mesh populations render as filled circles at each cell's true radius
+    so neighbours touch. Delta-Notch cells are filled by their Delta level.
+    """
+    frames = [f for f in frames if f.get("x") or f.get("polygons")]
     if not frames:
         return '<div class="muted">no spatial frames captured</div>'
-    all_x = [v for f in frames for v in f["x"]]
-    all_y = [v for f in frames for v in f["y"]]
-    pad = 1.0
-    xr = [min(all_x) - pad, max(all_x) + pad]
-    yr = [min(all_y) - pad, max(all_y) + pad]
 
-    def marker(f):
-        if is_dn:
-            return dict(size=18, color=f["delta"], colorscale="YlOrRd",
-                        cmin=0.0, cmax=1.0, showscale=True,
-                        colorbar=dict(title="Delta", thickness=12),
-                        line=dict(color="#334155", width=1))
-        return dict(size=16, color=accent, opacity=0.85,
-                    line=dict(color="white", width=1.5))
+    def loops_of(f):
+        if f.get("polygons"):
+            return f["polygons"]
+        radii = f.get("radii") or [0.5] * len(f["x"])
+        return [_circle(x, y, r) for x, y, r in zip(f["x"], f["y"], radii)]
 
-    def trace(f):
-        return dict(x=f["x"], y=f["y"], mode="markers", type="scatter",
-                    marker=marker(f))
+    # bounds across all frames (fixed axes so the animation doesn't jump)
+    allx = [p[0] for f in frames for lp in loops_of(f) for p in lp]
+    ally = [p[1] for f in frames for lp in loops_of(f) for p in lp]
+    pad = 0.6
+    xr = [min(allx) - pad, max(allx) + pad]
+    yr = [min(ally) - pad, max(ally) + pad]
 
-    pframes = [dict(name=f"{i}", data=[trace(f)]) for i, f in enumerate(frames)]
+    def frame_traces(f):
+        if is_dn and not f.get("polygons"):
+            # per-cell filled circle coloured by that cell's Delta
+            deltas = f.get("delta") or [0.0] * len(f["x"])
+            radii = f.get("radii") or [0.5] * len(f["x"])
+            traces = []
+            for x, y, r, d in zip(f["x"], f["y"], radii, deltas):
+                traces.append(_fill_trace([_circle(x, y, r)], _delta_color(d)))
+            return traces
+        return [_fill_trace(loops_of(f), _hex_rgba(accent, 0.72))]
+
+    max_traces = max(len(frame_traces(f)) for f in frames)
+
+    def padded(f):
+        ts = frame_traces(f)
+        while len(ts) < max_traces:  # keep trace count constant across frames
+            ts.append(dict(x=[], y=[], mode="lines", fill="toself",
+                           hoverinfo="skip", showlegend=False))
+        return ts
+
+    pframes = [dict(name=f"{i}", data=padded(f)) for i, f in enumerate(frames)]
     steps = [dict(label=f'{f["time"]:.0f}', method="animate",
                   args=[[f"{i}"], dict(mode="immediate",
                                        frame=dict(duration=0, redraw=True))])
              for i, f in enumerate(frames)]
+    legend = ('<div class="cbar"><span>Delta</span>'
+              '<i style="background:linear-gradient(90deg,#ffffcc,#feb24c,'
+              '#f03b20,#96001a)"></i><span>low → high</span></div>'
+              if is_dn else "")
     layout = dict(
-        margin=dict(t=24, r=12, b=44, l=44), height=360,
-        xaxis=dict(range=xr, scaleanchor="y", scaleratio=1, title="x"),
-        yaxis=dict(range=yr, title="y"),
+        margin=dict(t=28, r=12, b=44, l=44), height=380,
+        xaxis=dict(range=xr, scaleanchor="y", scaleratio=1, title="x",
+                   zeroline=False, constrain="domain"),
+        yaxis=dict(range=yr, title="y", zeroline=False, constrain="domain"),
         paper_bgcolor="white", plot_bgcolor="#fafafa",
-        updatemenus=[dict(type="buttons", showactive=False, x=0.02, y=1.12,
-                          xanchor="left", direction="left",
-                          buttons=[
+        updatemenus=[dict(type="buttons", showactive=False, x=0.02, y=1.14,
+                          xanchor="left", direction="left", buttons=[
             dict(label="▶ play", method="animate",
-                 args=[None, dict(frame=dict(duration=650, redraw=True),
-                                  transition=dict(duration=180),
+                 args=[None, dict(frame=dict(duration=700, redraw=True),
+                                  transition=dict(duration=250),
                                   fromcurrent=True)]),
             dict(label="❚❚ pause", method="animate",
                  args=[[None], dict(mode="immediate",
@@ -181,11 +249,10 @@ def animation_html(pid, frames, accent, is_dn):
         ])],
         sliders=[dict(active=0, x=0.12, len=0.85, y=-0.02,
                       currentvalue=dict(prefix="t = ", suffix=" h",
-                                        font=dict(size=13)),
-                      steps=steps)],
+                                        font=dict(size=13)), steps=steps)],
     )
     return f"""
-    <div id="an_{pid}" class="chart"></div>
+    <div id="an_{pid}" class="chart"></div>{legend}
     <script>
     (function(){{
       var frames = {json.dumps(pframes)};
@@ -370,6 +437,8 @@ main{{max-width:1180px;margin:0 auto;padding:24px}}
 .card{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}}
 .card h3{{margin:0 0 12px;font-size:1rem}}
 .chart{{width:100%}}
+.cbar{{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--mut);margin-top:6px}}
+.cbar i{{display:inline-block;width:120px;height:10px;border-radius:5px;border:1px solid var(--line)}}
 .muted{{color:var(--mut)}}
 .err{{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:14px}}
 .jtree{{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8rem;background:#fbfbfd;
