@@ -1,0 +1,17 @@
+import chaste.cell_based as cb, chaste.mesh as me
+allnames = dir(cb)
+print("=== every name containing 'Abstract' in chaste.cell_based ===")
+ab = [n for n in allnames if "Abstract" in n]
+print("  count:", len(ab))
+for n in sorted(ab): print("   ", n)
+print()
+print("=== names containing 'Force' ===")
+print("  ", sorted(n for n in allnames if "Force" in n))
+print()
+print("=== names containing 'SwitchingUpdateRule' ===")
+print("  ", sorted(n for n in allnames if "Switching" in n))
+print()
+print("=== HeterotypicBoundaryLengthWriter exact instantiations ===")
+print("  ", sorted(n for n in allnames if n.startswith("HeterotypicBoundary")))
+print("=== PottsMeshGenerator exact instantiations ===")
+print("  ", sorted(n for n in dir(me) if n.startswith("PottsMeshGenerator")))

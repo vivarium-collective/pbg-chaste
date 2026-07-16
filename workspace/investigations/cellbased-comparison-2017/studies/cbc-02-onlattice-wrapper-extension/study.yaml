@@ -1,0 +1,95 @@
+schema_version: 3
+name: cbc-02-onlattice-wrapper-extension
+investigation: cellbased-comparison-2017
+title: "On-lattice + differential-adhesion wrapper extension"
+status: planned
+confidence: Planned
+
+question: |
+  Can pbg-chaste's ChasteSimulationProcess be extended to cover the four model classes the
+  paper's sorting study needs and PyChaste can reach — Potts (CP), overlapping spheres (OS),
+  Voronoi-with-ghost-nodes (VT) and vertex (VM) — emitting fractional boundary length as a
+  first-class observable?
+
+hypothesis: |
+  All four are reachable with mainline PyChaste classes alone. The probe confirmed every
+  required population, force, update rule, mesh generator and the HeterotypicBoundaryLengthWriter
+  are bound; the work is wrapper architecture, not missing bindings.
+
+objective: |
+  Extend the wrapper to dispatch OnLatticeSimulation alongside OffLatticeSimulation, add Potts
+  and ghost-node populations, two-cell-type labelling, the differential-adhesion forces and
+  update rules, and surface heterotypic boundary length on an output port.
+
+description: |
+  The current wrapper is a 12-combination demo of a single simulation class. Three structural
+  changes are needed, and the first is the one that breaks the existing design.
+
+  (1) OnLatticeSimulation. `_chaste_server.py` hardcodes OffLatticeSimulation2_2, and the
+  force/_apply_stiffness abstraction does not generalise: on-lattice populations take update
+  rules via AddUpdateRule, not forces via AddForce. This needs a real dispatch seam, not another
+  branch in the existing if-chain.
+
+  (2) Ghost nodes for VT. The paper's VT is MeshBasedCellPopulationWithGhostNodes with 20 ghost
+  layers; the wrapper's `mesh` population calls HoneycombMeshGenerator(w, h) with no ghost
+  argument and is therefore NOT the paper's VT. The output extractor also assumes every location
+  index is a real cell, so it must learn to filter GetGhostNodeIndices — otherwise ghosts are
+  silently counted as cells and every population-level number is wrong.
+
+  (3) Two cell types. The paper relaxes to steady state, then labels ~50% of cells with CellLabel
+  and runs on. The wrapper has no notion of cell type or labelling at all.
+
+  Scope note: CA is deliberately excluded. Its DifferentialAdhesionCaSwitchingUpdateRule is custom
+  to the paper's repo, and AbstractCaSwitchingUpdateRule_2 exposes no constructor to subclass —
+  see the investigation's decisions_needed. CaBasedCellPopulation itself IS bound, so the CA
+  population may still be constructed; only its adhesion-driven switching is out of reach.
+
+  Two landmines from the existing code carry over: every Chaste object must be retained in _KEEP
+  or the next call aborts with "pure virtual method called", and state must be extracted before
+  any teardown because TearDownNotebookTest segfaults after a real run.
+
+parent_studies: []
+
+expected_behavior:
+  - name: onlattice-populations-run-and-emit-heterotypic-boundary
+    observable: heterotypic_boundary_length
+    condition: |
+      A Potts (CP) simulation runs under OnLatticeSimulation with the three update rules attached
+      (volume constraint, surface-area constraint, differential adhesion) and returns non-zero
+      heterotypic boundary length and total shared edge length for a two-label population.
+    rationale: |
+      CP is the strictest test of the new dispatch seam — it is the only model needing
+      OnLatticeSimulation AND update rules AND labels — and it is the one model in this study
+      requiring no substitute classes at all, so a failure here is unambiguously a wrapper bug.
+
+  - name: ghost-nodes-excluded-from-cell-counts
+    observable: num_cells
+    condition: |
+      A VT population built with 20 ghost layers over a 20x20 tissue reports 400 real cells, not
+      400 plus the ghost count.
+    rationale: |
+      Directly targets the extractor's assumption that every location index is a real cell.
+      Failure here would inflate every VT observable while looking superficially plausible.
+
+  - name: cell-labelling-splits-population-in-half
+    observable: labelled_cell_fraction
+    condition: |
+      After the paper's RandomlyLabelCells(..., 0.5) step, the labelled fraction is 0.5 +/- the
+      binomial spread expected at n = 400, in all four populations.
+    rationale: |
+      Differential adhesion is meaningless without two types; this asserts the labelling step
+      exists and is population-independent before any sorting result rests on it.
+
+baseline: []
+variants: []
+interventions: []
+runs: []
+
+notes: |
+  Mesh generators are imported from chaste.mesh, NOT chaste.cell_based — PottsMeshGenerator,
+  HoneycombMeshGenerator, HoneycombVertexMeshGenerator all live there. The probe's first pass
+  missed this and wrongly reported them absent.
+
+  Deprecation: the image warns that Foo2_2 spellings are deprecated in favour of
+  Foo["2", "2"]. The existing wrapper uses the old spelling throughout. Not urgent, but new code
+  should probably adopt the subscript form rather than deepen the debt.

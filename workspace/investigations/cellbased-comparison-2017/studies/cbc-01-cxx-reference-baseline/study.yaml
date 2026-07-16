@@ -1,0 +1,87 @@
+schema_version: 3
+name: cbc-01-cxx-reference-baseline
+investigation: cellbased-comparison-2017
+title: "C++ ground-truth baseline"
+status: planned
+confidence: Planned
+
+question: |
+  Can we build Chaste plus the authors' CellBasedComparison2017 project from source and
+  regenerate the cell-sorting output of Osborne et al. 2017 — producing per-model
+  heterotypicboundary.dat trajectories that serve as the ground truth for every later study?
+
+hypothesis: |
+  The project builds against modern mainline Chaste (its copyright headers run to 2021 and its
+  CI claims continuous testing), and once the paper-parameter blocks are restored the five
+  sorting sims reproduce Fig 2 qualitatively — CA, CP and VM reaching engulfment; OS and VT
+  stalling at a local minimum.
+
+objective: |
+  Build Chaste + CellBasedComparison2017, restore the paper parameters that the repo ships
+  commented out, run TestCellSortingLiteratePaper for all five models across 10 seeds, and
+  archive the resulting heterotypicboundary.dat files as the investigation's reference dataset.
+
+description: |
+  This study exists because the expert asked for a careful comparison against existing Chaste
+  results, and chose regenerated C++ output over published figures as the reference.
+
+  The critical trap is documented in the authors' own source: every test file ships with the
+  paper parameters COMMENTED OUT and short continuous-integration values active. For cell
+  sorting, M_TIME_FOR_SIMULATION is 11.0 in the repo versus 100 in the paper. Running the
+  suite as-cloned produces a plausible-looking but wrong baseline — the single highest-risk
+  silent failure in this investigation. Restoring those blocks is step one, and the diff must
+  be recorded.
+
+  The build is the other risk. The project's CMakeLists declares
+  find_package(Chaste COMPONENTS cell_based crypt), so the crypt component must be built even
+  though the sorting case study does not use it. The paper pins historical Chaste branches
+  (paper/CellBasedComparison, paper/CellBasedComparison18) against Oxford servers that are no
+  longer the live mirror; we build against the GitHub mirror's develop and record the commit.
+
+  Output lands in $CHASTE_TEST_OUTPUT/CellSorting/{Ca,Potts,Node,Mesh,Vertex}. The measure the
+  investigation turns on is heterotypicboundary.dat, whose four columns are
+  (heterotypic_boundary_length, total_shared_edges_length, num_heterotypic_pairs,
+  total_num_pairs). The paper's fractional boundary length is column 1 / column 2 — the writer
+  does NOT divide, so the reduction is ours to perform and to test.
+
+parent_studies: []
+
+expected_behavior:
+  - name: cxx-baseline-reproduces-paper-figure-2-qualitatively
+    observable: fractional_boundary_length_trajectory
+    condition: |
+      With paper parameters restored and k_pert = 1, all five models show monotone decline in
+      fractional boundary length from ~1 at labelling time; CA, CP and VM approach the
+      engulfment reference (dashed line, ~0.15) by t = 100 while OS and VT plateau above it.
+    rationale: |
+      This is Fig 2 / Fig 3-left restated. It is deliberately qualitative: it is a sanity gate
+      confirming the build and the restored parameters are sound, not the quantitative test.
+      The quantitative test lives in cbc-04, which diffs against this study's numbers.
+
+  - name: paper-parameters-restored-and-recorded
+    observable: test_source_diff
+    condition: |
+      The diff restoring M_TIME_FOR_SIMULATION = 100 (and any other commented paper values) is
+      committed, and the built binary is confirmed to run to t = 100 rather than t = 11.
+    rationale: |
+      Guards the silent-wrong-baseline failure mode. A baseline generated at CI parameters would
+      invalidate every downstream comparison while looking entirely healthy.
+
+  - name: baseline-seed-spread-quantified
+    observable: fractional_boundary_length_std
+    condition: |
+      10 seeds per model, with per-timepoint mean and standard deviation recorded.
+    rationale: |
+      cbc-04's acceptance is "within seed spread", so the spread must be measured here or that
+      criterion has no scale to be judged against.
+
+baseline: []
+variants: []
+interventions: []
+runs: []
+
+notes: |
+  OPEN QUESTION — where this runs. Building Chaste from source is heavy (PETSc, VTK, HDF5,
+  Boost, a long CMake build) and this laptop is Apple Silicon, where the paper-scale runs would
+  additionally be under emulation. The Mac mini is the natural host. Decide before starting;
+  the build is too expensive to do twice.

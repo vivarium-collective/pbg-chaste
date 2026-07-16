@@ -1,0 +1,96 @@
+schema_version: 3
+name: cbc-04-cell-sorting-reproduction
+investigation: cellbased-comparison-2017
+title: "Cell-sorting reproduction vs the C++ baseline"
+status: planned
+confidence: Planned
+
+question: |
+  Does pbg-chaste reproduce the cell-sorting result of Osborne et al. 2017 — the fractional
+  boundary length trajectory of Figs 2-3 — for each reachable model class (CP, OS, VT, VM), to
+  within the run-to-run spread of the authors' own C++ implementation?
+
+hypothesis: |
+  All four reachable models match the cbc-01 baseline within 10-seed spread, and reproduce the
+  paper's central qualitative claim: CP and VM reach engulfment while OS and VT stall at a local
+  minimum. CP is expected to match most tightly, being the only arm needing no substitute classes.
+
+objective: |
+  Run the paper's sorting protocol across CP, OS, VT and VM at k_pert = 1 over 10 seeds, reduce
+  heterotypicboundary.dat to fractional boundary length, and diff against the cbc-01 C++ baseline
+  per model per timepoint.
+
+description: |
+  The payoff study. It runs the same protocol as cbc-01 but through pbg-chaste's PyChaste wrapper,
+  and the comparison between the two is the investigation's actual result.
+
+  Protocol, per the authors' code: a 20x20 tissue of non-dividing DifferentiatedCellProliferativeType
+  cells relaxes to steady state to t = 10; ~50% are then labelled with CellLabel; the simulation
+  runs a further 100 h. Per model, from the authors' source rather than the paper's tables:
+
+  - CP: PottsMeshGenerator(240,20,4,240,20,4), OnLatticeSimulation, dt 0.01, temperature 0.2,
+    VolumeConstraintPottsUpdateRule(16, 0.1), SurfaceAreaConstraintPottsUpdateRule(16, 0.01),
+    DifferentialAdhesionPottsUpdateRule(0.1/0.5/0.1/0.2/1.0). All mainline.
+  - OS: HoneycombMeshGenerator(20,20,0) -> NodesOnlyMesh cutoff 2.5, OffLatticeSimulation, dt 1/200,
+    DifferentialAdhesionGeneralisedLinearSpringForce (stiffness 50, homotypic x1.0, heterotypic
+    x0.1, cutoff 2.5) + random motion 0.05.
+  - VT: HoneycombMeshGenerator(20,20,20 ghosts) -> MeshBasedCellPopulationWithGhostNodes, same
+    force at default cutoff 1.5, + random motion 0.1.
+  - VM: HoneycombVertexMeshGenerator(20,20), rearrangement threshold 0.1,
+    NagaiHondaDifferentialAdhesionForce(50/1.0/1.0/2.0/1.0/10.0/20.0) + random motion 0.1. Note the
+    authors set CellData "target area" = 1.0 per cell BY HAND and deliberately do NOT attach
+    SimpleTargetAreaModifier, with a source comment that the modifiers misbehave by producing very
+    long G1 phases. Reproduce their choice, not the idiomatic one.
+
+  Random motion in OS/VT/VM comes from DiffusionForce configured per cbc-03. That substitution is
+  this study's central dependency and its most likely source of divergence — which is precisely
+  why cbc-03 gates it.
+
+  CA is out of scope: blocked on the custom DifferentialAdhesionCaSwitchingUpdateRule. Report it as
+  a binding-coverage finding with the probe evidence, not as a simulation result, and do not quietly
+  drop it from the model list — an unexplained 4-model figure against a 5-model paper reads as an
+  omission rather than a finding.
+
+  Feasibility: 4 models x 10 seeds x 100 h at 20x20 under amd64 emulation is likely infeasible on
+  this laptop. Size the runs before committing, and move to the Mac mini if needed. The Fig 3
+  k_pert sweep (9 values) is a stretch goal and should not gate the headline comparison.
+
+parent_studies:
+  - {study: cbc-01-cxx-reference-baseline, condition: tests-passed, relation: leads-to}
+  - {study: cbc-02-onlattice-wrapper-extension, condition: tests-passed, relation: leads-to}
+  - {study: cbc-03-random-motion-equivalence, condition: tests-passed, relation: regulatory}
+
+expected_behavior:
+  - name: fractional-length-matches-cxx-baseline-within-seed-spread
+    observable: fractional_boundary_length_trajectory
+    condition: |
+      Per model in {CP, OS, VT, VM} at k_pert = 1, the PyChaste 10-seed mean lies within the cbc-01
+      C++ 10-seed spread at every sampled timepoint.
+    rationale: |
+      The investigation's headline criterion — the quantitative sense in which pbg-chaste does or
+      does not reproduce the paper. Stated per-model because the models can fail independently, and
+      an aggregate would let one broken arm hide behind three healthy ones.
+
+  - name: os-and-vt-stall-while-cp-and-vm-engulf
+    observable: fractional_boundary_length_endpoint
+    condition: |
+      At t = 100, CP and VM approach the engulfment reference (~0.15) while OS and VT plateau
+      distinctly above it.
+    rationale: |
+      The paper's actual scientific claim, independent of numeric agreement. A run could match
+      cbc-01 numerically yet still be checked here for whether the reproduction carries the
+      qualitative finding the paper is known for.
+
+  - name: ca-limitation-reported-with-evidence
+    observable: binding_coverage_report
+    condition: |
+      The CA arm is documented as blocked, citing the probe result (AbstractCaSwitchingUpdateRule_2
+      exposes no constructor; the trampoline holder-type failure), not silently omitted.
+    rationale: |
+      Negative results about binding coverage are a real finding of this investigation and are
+      likely the most transferable thing it produces for other PyChaste wrapping work.
+
+baseline: []
+variants: []
+interventions: []
+runs: []

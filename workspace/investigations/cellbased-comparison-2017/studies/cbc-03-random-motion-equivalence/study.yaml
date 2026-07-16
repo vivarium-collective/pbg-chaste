@@ -1,0 +1,106 @@
+schema_version: 3
+name: cbc-03-random-motion-equivalence
+investigation: cellbased-comparison-2017
+kind: adversarial
+investigation_role: |
+  The falsification study. It exists to try to BREAK the substitution that cbc-04's OS, VT and VM
+  arms depend on. It passes by failing to refute; a refutation is a real result and collapses the
+  investigation to CP only.
+title: "Is DiffusionForce really the paper's RandomMotionForce?"
+status: planned
+confidence: Planned
+
+question: |
+  Is mainline Chaste's DiffusionForce numerically equivalent to the custom RandomMotionForce that
+  Osborne et al. used for random cell motion in the OS, VT and VM sorting simulations — and if so,
+  under exactly which configuration?
+
+hypothesis: |
+  They are algebraically identical, and DiffusionForce reduces to RandomMotionForce exactly when
+  the damping constant is 1.0 and DiffusionScalingConstant = D * node_radius with uniform radii.
+  Under those conditions the two produce statistically indistinguishable displacement
+  distributions and indistinguishable fractional-length trajectories.
+
+objective: |
+  Compare the two forces analytically and numerically — against the C++ reference from cbc-01,
+  which can instantiate the real RandomMotionForce — and either sanction DiffusionForce as the
+  substitute with an explicit configuration recipe, or refute it and escalate.
+
+description: |
+  PyChaste cannot express the paper's RandomMotionForce. The probe established that Chaste's
+  abstract bases, while reachable via MRO (AbstractForce_2_2), cannot carry a working Python
+  subclass in this image: the C++ -> Python trampoline fails marshalling the population argument
+  ("Unable to convert std::shared_ptr<T> to Python when the bound type does not use
+  std::shared_ptr or py::smart_holder as its holder type"). This reproduces with an override that
+  never touches its argument, while an identical mainline-only control solves — so it is the
+  binding layer, not user code. Since OS, VT and VM sorting all need random motion, the whole
+  reproduction rests on finding a mainline substitute.
+
+  Reading both sources side by side, the force laws are the same expression:
+
+    RandomMotionForce:  F = sqrt(2 * mMovementParameter * dt) / dt * xi
+    DiffusionForce:     F = nu * sqrt(2 * (scaling / node_radius) * dt) / dt * xi
+
+  Both draw xi from StandardNormalRandomDeviate per dimension, both iterate rGetMesh() nodes, and
+  both scale by dt so the discretised update gives x_new = x_old + sqrt(2*D*dt)*W. They coincide
+  when nu = 1 and scaling / node_radius = mMovementParameter. Chaste's default damping constant is
+  1.0, and the paper sets eta = 1.0 for OS and VT — so nu = 1 is the paper's own regime, not a
+  convenient assumption.
+
+  Three ways this could still be wrong, which is what the study is for:
+
+  - DiffusionForce THROWS if any node radius is 0, and 0 is the default for vertex meshes. VM and
+    VT need radii set on every node. Whether setting a radius on a vertex-mesh node perturbs
+    anything else is untested.
+  - nu comes from GetDampingConstant(node_index), which is per-node and could diverge from 1.0 for
+    labelled cells or under a mutation state, silently rescaling the noise.
+  - The two forces consume random numbers from the same global generator. Even with identical
+    force laws, differing call ORDER or COUNT desynchronises the stream, so per-seed trajectories
+    will not match step-for-step even when the distributions do. The comparison must therefore be
+    distributional over many seeds, not trajectory-identical — mistaking this for a real
+    divergence is the likely false alarm.
+
+parent_studies:
+  - {study: cbc-01-cxx-reference-baseline, condition: tests-passed, relation: leads-to}
+  - {study: cbc-02-onlattice-wrapper-extension, condition: tests-passed, relation: leads-to}
+
+expected_behavior:
+  - name: diffusion-force-matches-random-motion-force-trajectory
+    observable: fractional_boundary_length_trajectory
+    condition: |
+      For OS at k_pert = 1, the PyChaste + DiffusionForce fractional-length trajectory lies within
+      the C++ + RandomMotionForce 10-seed spread from cbc-01 at every sampled timepoint.
+    rationale: |
+      The end-to-end test at the level the investigation actually reports. If the substitution is
+      sound anywhere it must hold for OS, the simplest off-lattice model.
+
+  - name: single-cell-displacement-distribution-matches
+    observable: single_cell_displacement_msd
+    condition: |
+      For one isolated cell with no other forces, mean squared displacement over 1000 steps agrees
+      with the analytic 2*D*t*DIM to within 3 standard errors, for both forces.
+    rationale: |
+      Isolates the noise term from adhesion and from sorting dynamics. If the forces diverge, this
+      says so unambiguously and cheaply; if they agree here but not end-to-end, the fault is in
+      the coupling, not the force law.
+
+  - name: zero-radius-failure-is-explicit
+    observable: exception_on_zero_radius
+    condition: |
+      Constructing a VM or VT simulation with DiffusionForce and unset node radii raises the
+      documented Chaste exception rather than silently producing zero noise.
+    rationale: |
+      An adversarial check on the failure mode itself. A silent zero-noise run is the dangerous
+      outcome — it would look like a converged simulation while having disabled the exact
+      mechanism the paper says drives escape from the local minimum.
+
+baseline: []
+variants: []
+interventions: []
+runs: []
+
+notes: |
+  If refuted, the escalation is a custom PyChaste image compiling RandomMotionForce with proper
+  pybind holder types — which would also unblock CA's switching rule and thus the whole 5-model
+  set. Refutation is therefore not purely bad news; it converts the investigation into a
+  bindings-engineering effort with a larger payoff.
