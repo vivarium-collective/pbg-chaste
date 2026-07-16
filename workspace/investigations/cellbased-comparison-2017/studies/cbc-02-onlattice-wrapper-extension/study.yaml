@@ -85,11 +85,60 @@ variants: []
 interventions: []
 runs: []
 
-notes: |
-  Mesh generators are imported from chaste.mesh, NOT chaste.cell_based — PottsMeshGenerator,
-  HoneycombMeshGenerator, HoneycombVertexMeshGenerator all live there. The probe's first pass
-  missed this and wrongly reported them absent.
+findings:
+  - summary: |
+      All four reachable models (CP, OS, VT, VM) construct with the paper's exact
+      differential-adhesion configuration and emit heterotypicboundary.dat — verified end-to-end
+      by spikes/spike_sorting.py at 5x5 cells, t=0.2, before any wrapper code was written.
+    evidence: |
+      spikes/raw/*-heterotypicboundary.dat, produced by spikes/spike_sorting.py against
+      chaste/pychaste:latest. All five columns present: time, heterotypic_length, total_length,
+      num_heterotypic_pairs, total_pairs. CP ran under OnLatticeSimulation with all three update
+      rules attached; OS/VT/VM under OffLatticeSimulation with their respective differential
+      -adhesion forces. No custom classes, no trampolines.
+    status: supported
 
-  Deprecation: the image warns that Foo2_2 spellings are deprecated in favour of
-  Foo["2", "2"]. The existing wrapper uses the old spelling throughout. Not urgent, but new code
-  should probably adopt the subscript form rather than deepen the debt.
+  - summary: |
+      OS fractional boundary length is numerically DEGENERATE on the pristine honeycomb lattice,
+      and the paper's 10h relaxation phase is what conditions it.
+    evidence: |
+      probes/probe9.py: NodesOnlyMesh default node radius is exactly 0.5 and honeycomb spacing is
+      exactly 1.0, so neighbouring cells are exactly TANGENT (2r - d = 0.0000). The writer derives
+      an OS "shared edge" from Heron's formula on the two radii and their separation, so tangency
+      gives a zero-length chord. Observed: spikes/raw/os-heterotypicboundary.dat reads
+      "0.2  2.95028e-07  5.68982e-07  14  27" — lengths at float-noise scale, and the ratio
+      2.95e-07/5.69e-07 = 0.5185 is EXACTLY the pair-count ratio 14/27, i.e. the length weighting
+      contributes nothing.
+    interpretation: |
+      Not a bug, and not something to "fix" — it is the paper's own OS configuration. It means the
+      OS metric only becomes meaningful once the spring force compresses cells into genuine overlap,
+      which is precisely what the authors' 10h pre-labelling relaxation achieves. Consequence for
+      cbc-04: OS must not be sampled before relaxation, and any OS fractional length that exactly
+      equals the pair-count ratio should be treated as a signal that the tissue has not compressed,
+      not as a physical result.
+    status: supported
+
+api_notes: |
+  Learned from probes 7-9; these correct guesses that the C++ source would have led us to make.
+
+  - Mesh generators live in chaste.mesh, NOT chaste.cell_based (PottsMeshGenerator,
+    HoneycombMeshGenerator, HoneycombVertexMeshGenerator). The first probe pass wrongly called
+    them absent.
+  - rGetCells() is NOT bound. CellsGenerator.GenerateBasicRandom returns a plain Python list of
+    Cell, so cells can be labelled before population construction; mid-run, iterate via
+    IsCellAttachedToLocationIndex + GetCellUsingLocationIndex. The population is not
+    Python-iterable.
+  - cb.SetupNotebookTest() must run BEFORE generating cells, or Cell construction throws
+    "SimulationTime has not been set up".
+  - Writers attach via either the generic AddPopulationWriter(instance) or the name-mangled
+    AddPopulationWriterHeterotypicBoundaryLengthWriter(). Both work.
+  - MeshBasedCellPopulationWithGhostNodes takes (mesh, cells, location_indices), with
+    location_indices from gen.GetCellLocationIndices() — this is what separates real cells from
+    ghosts and is the fix for the extractor's real-cell assumption.
+  - New code uses the subscript spelling Foo["2","2"]; the image deprecates the wrapper's existing
+    Foo2_2 form.
+
+notes: |
+  Still unverified at spike stage, and deliberately so — these are cbc-02's actual build work:
+  labelling at t=10 mid-run rather than at construction (the spike labels up-front); ghost-node
+  exclusion from cell counts; and the paper's full 20x20 geometry.

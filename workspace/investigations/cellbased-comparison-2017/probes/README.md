@@ -36,3 +36,20 @@ Note: Docker Desktop does not share `/private/tmp` — mount from a path under
   means a custom PyChaste image with correct pybind holder types — which would
   also fix the trampoline and thus `RandomMotionForce`.
 - **CP, OS, VT, VM are reachable** with mainline classes only.
+
+## Round 2 — API discovery (probes 7-9)
+
+| Probe | What it establishes |
+|---|---|
+| `probe7.py` | `rGetCells()` is **not** bound; `CellsGenerator.GenerateBasicRandom` returns a plain Python `list` of `Cell`, and `AddCellProperty` works on them. `SetupNotebookTest()` must precede cell generation or `Cell` throws "SimulationTime has not been set up". |
+| `probe8.py` | The metric writer **is attachable** — both the generic `AddPopulationWriter(instance)` and the name-mangled `AddPopulationWriterHeterotypicBoundaryLengthWriter()` work. (Probe 7's method filter hid the generic form; it was never actually missing.) |
+| `probe9.py` | `NodesOnlyMesh` default node radius is 0.5 and honeycomb spacing is 1.0 → neighbours exactly **tangent** (`2r - d = 0.0000`), so the OS shared-edge chord is zero-length. Explains the ~1e-7 lengths in the OS spike output. |
+
+## `spike_sorting.py` (in `studies/cbc-02-.../spikes/`)
+
+Builds the paper's CP/OS/VT/VM sorting configuration and runs each briefly.
+**Result: all four construct and emit `heterotypicboundary.dat`** using mainline
+classes only. Raw output archived alongside it under `spikes/raw/`.
+
+Caveat worth remembering: `%.4f` renders the OS lengths (~3e-7) as `0.0000`,
+which looks like a failure and is not. Read the raw `.dat`, not a formatted print.
