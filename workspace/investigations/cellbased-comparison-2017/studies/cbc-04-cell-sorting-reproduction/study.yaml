@@ -90,7 +90,20 @@ expected_behavior:
       Negative results about binding coverage are a real finding of this investigation and are
       likely the most transferable thing it produces for other PyChaste wrapping work.
 
-baseline: []
+baseline:
+  - name: cp-sorting
+    composite: sorting_potts
+    description: "Cellular Potts sorting — OnLatticeSimulation + volume/surface/adhesion rules."
+  - name: os-sorting
+    composite: sorting_overlapping_spheres
+    description: "Overlapping spheres sorting — NodeBased + differential-adhesion springs + diffusion noise."
+  - name: vm-sorting
+    composite: sorting_vertex
+    description: "Vertex sorting — Nagai-Honda differential adhesion + diffusion noise."
+  - name: vt-sorting
+    composite: sorting_voronoi
+    description: "Voronoi sorting — ghost-node MeshBased. Deterministic pending cbc-03 (no random-motion substitute)."
+
 variants: []
 interventions: []
 runs: []

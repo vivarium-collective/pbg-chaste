@@ -2,8 +2,14 @@ schema_version: 3
 name: cbc-02-onlattice-wrapper-extension
 investigation: cellbased-comparison-2017
 title: "On-lattice + differential-adhesion wrapper extension"
-status: planned
-confidence: Planned
+status: ran
+confidence: Accepted
+claim: |
+  All four reachable models (CP, OS, VT, VM) run the paper's differential-adhesion
+  sorting protocol through the ChasteCellSortingProcess wrapper and emit fractional
+  boundary length, verified end-to-end through the process-bigraph composite runtime.
+  VT runs deterministically: DiffusionForce is mechanically incompatible with its
+  per-step remesh — a finding that feeds cbc-03.
 
 question: |
   Can pbg-chaste's ChasteSimulationProcess be extended to cover the four model classes the
@@ -118,8 +124,59 @@ findings:
       not as a physical result.
     status: supported
 
+  - summary: |
+      Implemented: ChasteCellSortingProcess + _sorting_server.py drive all four models
+      through the real engine. 11/11 tests pass (Docker-gated), and the cell_sorting
+      composite runs end-to-end through process-bigraph, emitting fractional_length via
+      RAMEmitter.
+    evidence: |
+      pbg_chaste/_sorting_server.py, pbg_chaste/processes.py::ChasteCellSortingProcess,
+      tests/test_cell_sorting.py (11 passed). End-to-end composite: CP 5x5 emitted
+      fractional_length=0.379, random_motion="temperature", num_cells=25 through the
+      RAMEmitter history. CP AC (onlattice + boundary), VT AC (16 real cells, ghosts
+      excluded) and labelling AC (exact half across all four models) all pass on the
+      real engine.
+    status: supported
+
+  - summary: |
+      REFUTATION (feeds cbc-03): mainline DiffusionForce cannot substitute for the paper's
+      RandomMotionForce in the VT model. MeshBasedCellPopulation re-triangulates every
+      timestep, creating fresh nodes with NO radius attribute; DiffusionForce divides its
+      force by node radius and throws on radius 0, whereas RandomMotionForce has no radius
+      division and is immune.
+    evidence: |
+      probes/probe_vt3.py: after a single plain solve, all 64 VT mesh nodes report
+      missing/zero radius despite being set to 0.5 before the solve — the remesh discards
+      them. Setting radii once (probe_vt2.py, via pop.rGetMesh() which IS the same object)
+      does not survive. OS and VM are unaffected (NodesOnlyMesh keeps radii; the vertex
+      mesh's ReMesh preserves node attributes), so the incompatibility is specific to the
+      mesh-based Delaunay population.
+    interpretation: |
+      This is a per-model, mechanical refutation of cbc-03's equivalence hypothesis, reached
+      before any trajectory was measured. VT therefore runs here WITHOUT random motion, flagged
+      random_motion="unavailable" in the emitted state (never silent). cbc-03 now owns a concrete
+      obstruction, and cbc-04's VT arm is blocked on noise until a substitute is found (candidates:
+      a custom PyChaste image binding RandomMotionForce, or a fixed-radius force variant).
+    status: supported
+    links: [cbc-03-random-motion-equivalence]
+
+  - summary: |
+      DiffusionForce has no scaling setter; scaling is derived as C*T/viscosity with
+      C = 2.636845e-8 (measured). To hit scaling = xi*radius (so per-node D = xi, matching
+      RandomMotionForce), set viscosity=1 and AbsoluteTemperature = xi*radius/C.
+    evidence: "probes/probe_fix.py; pbg_chaste/_sorting_server.py::DIFFUSION_SCALING_C."
+    status: supported
+
+  - summary: |
+      CellLabel has no Python read-back (HasCellProperty and the property collection are
+      unbound), so per-cell labels are tracked by the stable cell id set at labelling time.
+      The label still drives the C++ physics; only the reported labels[] array uses the id set.
+    evidence: "probes/probe_lab.py (no readback path), probe_id.py (GetCellId unique & stable)."
+    status: supported
+
 api_notes: |
-  Learned from probes 7-9; these correct guesses that the C++ source would have led us to make.
+  Learned from probes 7-9 and the round-3 probes; these correct guesses that the C++ source
+  would have led us to make.
 
   - Mesh generators live in chaste.mesh, NOT chaste.cell_based (PottsMeshGenerator,
     HoneycombMeshGenerator, HoneycombVertexMeshGenerator). The first probe pass wrongly called

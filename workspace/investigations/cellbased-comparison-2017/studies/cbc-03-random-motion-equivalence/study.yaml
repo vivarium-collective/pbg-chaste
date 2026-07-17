@@ -99,6 +99,23 @@ variants: []
 interventions: []
 runs: []
 
+early_findings:
+  - summary: |
+      PARTIAL REFUTATION already in hand (from cbc-02, before this study runs): DiffusionForce
+      is mechanically unusable as the RandomMotionForce substitute for the VT model, independent
+      of any trajectory comparison.
+    evidence: |
+      cbc-02 probes/probe_vt3.py: MeshBasedCellPopulation re-triangulates every timestep,
+      discarding node radius attributes; DiffusionForce divides force by radius and throws on 0,
+      while RandomMotionForce does not. Confirmed: all 64 VT nodes lose their radius after one
+      plain solve. OS and VM are unaffected.
+    interpretation: |
+      Narrows this study's remaining scope to OS and VM, where DiffusionForce DOES run. The
+      equivalence question there is still open and is what the trajectory/MSD tests below decide.
+      For VT the answer is already "no" — the fix is a custom binding, not a configuration.
+    status: supported
+    links: [cbc-02-onlattice-wrapper-extension]
+
 notes: |
   If refuted, the escalation is a custom PyChaste image compiling RandomMotionForce with proper
   pybind holder types — which would also unblock CA's switching rule and thus the whole 5-model
