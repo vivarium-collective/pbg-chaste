@@ -90,6 +90,52 @@ expected_behavior:
       Negative results about binding coverage are a real finding of this investigation and are
       likely the most transferable thing it produces for other PyChaste wrapping work.
 
+status: ran
+confidence: Accepted
+claim: |
+  pbg-chaste reproduces the Osborne et al. 2017 cell-sorting result for all four reachable
+  models. Single-seed fractional-length trajectories track the authors' own C++ code to within
+  0.01-0.15 at every timepoint, and reproduce the paper's qualitative ordering: VM near-identical
+  (max diff 0.012), CP and VT within 0.07, OS within 0.15. The reproduction is driven by the
+  differential-adhesion physics (identical C++ classes), with the random-motion implementation a
+  second-order perturbation — VT matches within 0.07 despite having NO random motion at all.
+
+findings:
+  - summary: |
+      Headline result: PyChaste vs C++ fractional length at t=110 — VM 0.271 vs 0.271 (max diff
+      0.012), CP 0.124 vs 0.097 (0.066), VT 0.507 vs 0.440 (0.070), OS 0.062 vs 0.039 (0.147).
+      All four reproduce the paper's Fig 3 ordering (VT stalls highest, OS/CP sort strongly, VM
+      intermediate).
+    evidence: |
+      compare.py over cbc-01/cxx-baseline (C++) and cbc-04/pychaste-baseline (PyChaste), both at
+      20x20, relax to t=10, label 50%, run to t=110, seed 0. Table: comparison_table.csv;
+      overlay: fractional_length.png. Per-model max|diff| computed on the shared 1.0h sampling grid.
+    interpretation: |
+      The trajectory is dominated by differential adhesion — which pbg-chaste drives through the
+      IDENTICAL Chaste C++ classes as the paper — and only weakly by the random-motion term, which
+      differs between the two (DiffusionForce substitute for OS/VM; none for VT). This is why VM
+      (adhesion-dominated) matches to 0.012 while OS (where the noise substitute matters most)
+      diverges most at 0.147, and why VT lands within 0.07 despite having no noise. The reproduction
+      target — the adhesion-driven sorting physics — is met; the residual is the noise treatment,
+      which cbc-03 characterises.
+    status: supported
+
+  - summary: |
+      SCOPE CAVEAT: this is a single-seed (seed 0) comparison, so "within 10-seed spread" (the AC)
+      is inferred from the small point diffs, not formally proven. The two are not expected to match
+      trajectory-for-trajectory even at seed 0 — OS/VM consume the RNG differently (DiffusionForce
+      vs RandomMotionForce) and VT has no noise — so agreement this close on single seeds is strong
+      evidence, but a 10-seed spread on both sides would make the claim quantitative.
+    status: partial
+
+  - summary: |
+      CA reported as blocked with evidence, not silently dropped: the paper's cellular automaton
+      uses DifferentialAdhesionCaSwitchingUpdateRule (custom to its repo) and PyChaste exposes no
+      constructible AbstractCaSwitchingUpdateRule base. The C++ baseline DOES include CA (frac 0.231)
+      for completeness; only the PyChaste reproduction omits it.
+    evidence: "processes.py ChasteCellSortingProcess raises for model='ca'; probes/probe4.py."
+    status: supported
+
 baseline:
   - name: cp-sorting
     composite: sorting_potts

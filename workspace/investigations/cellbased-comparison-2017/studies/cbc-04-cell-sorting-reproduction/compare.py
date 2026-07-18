@@ -14,7 +14,8 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CXX = os.path.join(HERE, "cxx-baseline")
+# the C++ ground truth lives in the cbc-01 study dir, not here
+CXX = os.path.join(HERE, "..", "cbc-01-cxx-reference-baseline", "cxx-baseline")
 PYC = os.path.join(HERE, "pychaste-baseline")
 
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", ".."))  # repo root for pbg_chaste

@@ -72,7 +72,7 @@ def run_model(model: str):
         dest_dir = os.path.join(OUTDIR, f"pbg_sort_{model}", "merged")
         os.makedirs(dest_dir, exist_ok=True)
         # copy every phase file preserving its results_from_time_* parent
-        src_run = hits[0].split(os.sep + "out" + os.sep)[0]
+        src_run = hits[-1].split(os.sep + "out" + os.sep)[0]
         for f in glob.glob(os.path.join(src_run, "out", "**",
                                         "heterotypicboundary.dat"), recursive=True):
             phase = os.path.basename(os.path.dirname(f))

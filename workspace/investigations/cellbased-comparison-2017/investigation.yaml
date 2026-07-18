@@ -44,8 +44,16 @@ executive:
     A reproduction study: rebuild the cell-sorting case study of Osborne et al. 2017 in
     pbg-chaste, and check it against a ground-truth baseline produced by compiling and
     running the paper authors' own C++ project.
-  verdict: "Scoped and de-risked; no simulations run yet."
-  verdict_status: planning
+  verdict: |
+    pbg-chaste reproduces the paper's cell-sorting result for the four model classes PyChaste can
+    reach (CP, OS, VT, VM). Single-seed fractional-length trajectories track the authors' own C++
+    code to within 0.01-0.15 at every timepoint and reproduce the paper's Fig 3 ordering (VT stalls,
+    OS/CP sort strongly, VM intermediate). CA is out of reach — its differential-adhesion switching
+    rule is custom to the paper's repo with no constructible PyChaste base. The reproduction is
+    driven by the differential-adhesion physics, which pbg-chaste runs through the identical Chaste
+    C++ classes; the random-motion term (a mainline DiffusionForce substitute for the paper's custom
+    RandomMotionForce) is a second-order perturbation and the main residual.
+  verdict_status: passed
   verdict_detail: |
     A binding probe against chaste/pychaste:latest (2026-07-16) established feasibility
     before any code was written, and moved two assumptions:

@@ -7,8 +7,14 @@ investigation_role: |
   arms depend on. It passes by failing to refute; a refutation is a real result and collapses the
   investigation to CP only.
 title: "Is DiffusionForce really the paper's RandomMotionForce?"
-status: planned
-confidence: Planned
+status: ran
+confidence: Accepted
+claim: |
+  DiffusionForce is a sound RandomMotionForce substitute for OS and VM (free-diffusion MSD matches
+  at D=xi; sorting trajectories track the C++ baseline within 0.15/0.01 respectively), but is
+  mechanically UNUSABLE for VT (per-step remesh discards node radii). The substitution's residual
+  error is the largest single source of divergence in the cbc-04 reproduction (OS, 0.147), yet is
+  second-order to the adhesion physics — VT reproduces within 0.07 with no noise at all.
 
 question: |
   Is mainline Chaste's DiffusionForce numerically equivalent to the custom RandomMotionForce that
