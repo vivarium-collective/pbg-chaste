@@ -101,9 +101,30 @@ runs: []
 
 early_findings:
   - summary: |
-      PARTIAL REFUTATION already in hand (from cbc-02, before this study runs): DiffusionForce
-      is mechanically unusable as the RandomMotionForce substitute for the VT model, independent
-      of any trajectory comparison.
+      SUPPORTED (free-diffusion limit, OS/VM): DiffusionForce, calibrated to scaling = xi*radius,
+      reproduces the free-diffusion MSD of the paper's RandomMotionForce. Satisfies the
+      single-cell-displacement-distribution-matches behavior for the models where DiffusionForce runs.
+    evidence: |
+      spikes/msd_diffusion.py (chaste/pychaste): 144 independent walkers under DiffusionForce alone,
+      xi=0.1, dt=0.005, t=1. Expected MSD = 4*D*t = 0.4 (D = scaling/radius = xi verified: scaling
+      reads back 0.05, damping constant 1.0). Measured MSD = 0.383, SEM 0.030, z = -0.56 -> MATCH.
+      RandomMotionForce gives the same D=xi (x_new = x_old + sqrt(2*xi*dt)*W), so the two coincide
+      in the free limit. Calibration recipe: SetViscosity(1.0), SetAbsoluteTemperature(xi*radius/C),
+      C = 2.636845e-8.
+    interpretation: |
+      Confirms the substitution is sound where DiffusionForce is usable at all (OS, VM). The
+      remaining open question is trajectory-level equivalence under adhesion + sorting dynamics,
+      which needs the cbc-01 C++ RandomMotionForce baseline to compare against. A methodological
+      note worth keeping: running many independent sims in one process to average MSD gave a WRONG
+      (25x low) answer because repeated SetupNotebookTest does not reset SimulationTime and teardown
+      segfaults; the valid design is one Solve with many non-interacting walkers (spikes/msd_debug.py
+      documents the failure, msd_diffusion.py the fix).
+    status: supported
+
+  - summary: |
+      PARTIAL REFUTATION (from cbc-02, before this study runs): DiffusionForce is mechanically
+      unusable as the RandomMotionForce substitute for the VT model, independent of any trajectory
+      comparison.
     evidence: |
       cbc-02 probes/probe_vt3.py: MeshBasedCellPopulation re-triangulates every timestep,
       discarding node radius attributes; DiffusionForce divides force by radius and throws on 0,
