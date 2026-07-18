@@ -75,13 +75,39 @@ CXX_MODEL_DIRS = {"ca": "Ca", "cp": "Potts", "os": "Node", "vt": "Mesh", "vm": "
 PYCHASTE_MODEL_DIRS = {m: f"pbg_sort_{m}" for m in ("cp", "os", "vt", "vm")}
 
 
-def _find_dat(root: str, subdir: str) -> str | None:
+def _find_dats(root: str, subdir: str) -> list[str]:
+    """All heterotypicboundary.dat files under a model dir.
+
+    Chaste writes one per results_from_time_<t> phase (e.g. a relaxation phase
+    from t=0 and a sorting phase from t=10). The full trajectory is their
+    concatenation in time order — returning only the first (alphabetically
+    results_from_time_0) would give just the pre-label relaxation, which carries
+    no labels and hence fractional length 0 throughout.
+    """
     hits = glob.glob(os.path.join(root, subdir, "**", "heterotypicboundary.dat"),
                      recursive=True)
     if not hits:
         hits = glob.glob(os.path.join(root, "**", subdir, "**",
                                       "heterotypicboundary.dat"), recursive=True)
-    return sorted(hits)[0] if hits else None
+    return sorted(hits)
+
+
+def _merge_dats(paths: list[str], *, model: str, source: str) -> Trajectory | None:
+    """Merge phase files into one trajectory, ordered by time (later phase wins ties)."""
+    rows: dict[float, tuple[float | None, float | None]] = {}
+    for p in paths:
+        tr = read_dat(p, model=model, source=source)
+        for t, fl, pf in zip(tr.times, tr.fractional_length, tr.pair_fraction):
+            rows[t] = (fl, pf)          # later files (higher phase) overwrite ties
+    if not rows:
+        return None
+    merged = Trajectory(model=model, source=source, path=";".join(paths))
+    for t in sorted(rows):
+        fl, pf = rows[t]
+        merged.times.append(t)
+        merged.fractional_length.append(fl)
+        merged.pair_fraction.append(pf)
+    return merged
 
 
 def load_source(root: str, source: str) -> dict[str, Trajectory]:
@@ -94,9 +120,11 @@ def load_source(root: str, source: str) -> dict[str, Trajectory]:
     mapping = CXX_MODEL_DIRS if source == "cxx" else PYCHASTE_MODEL_DIRS
     out: dict[str, Trajectory] = {}
     for model, subdir in mapping.items():
-        path = _find_dat(root, subdir)
-        if path:
-            out[model] = read_dat(path, model=model, source=source)
+        paths = _find_dats(root, subdir)
+        if paths:
+            merged = _merge_dats(paths, model=model, source=source)
+            if merged is not None:
+                out[model] = merged
     return out
 
 

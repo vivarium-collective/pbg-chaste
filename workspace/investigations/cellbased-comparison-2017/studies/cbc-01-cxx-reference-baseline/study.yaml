@@ -2,8 +2,39 @@ schema_version: 3
 name: cbc-01-cxx-reference-baseline
 investigation: cellbased-comparison-2017
 title: "C++ ground-truth baseline"
-status: planned
-confidence: Planned
+status: ran
+confidence: Accepted
+claim: |
+  Built the authors' C++ project against chaste/release on the mini and generated the
+  ground-truth cell-sorting baseline for all five models to t=100. Reduced to fractional
+  boundary length, it qualitatively reproduces the paper's Fig 3: VT stalls highest, OS
+  sorts most, CP engulfs. This is the reference cbc-04 diffs against.
+
+findings:
+  - summary: |
+      All five models ran to completion (rc=0) and produced fractional-length trajectories that
+      qualitatively match paper Fig 3 (k_pert=1). Normalizing by the value at labelling (t=10),
+      as Fig 3 does: OS 0.08, CP 0.19, CA 0.50, VM 0.55, VT 0.91.
+    evidence: |
+      cxx-baseline/CellSorting/{Ca,Potts,Node,Mesh,Vertex}/results_from_time_{0,10}/
+      heterotypicboundary.dat, reduced by pbg_chaste.sorting_analysis into
+      cxx-baseline/fractional_length_by_model.csv. Raw endpoints at t=110:
+      CA 0.461->0.231, CP 0.524->0.097, OS 0.480->0.039, VT 0.485->0.440, VM 0.494->0.271.
+      Ordering (VT stalls highest, OS lowest, CP low) matches the paper's Fig 3-left black curves.
+    interpretation: |
+      The authors' own code is the ground truth by construction; this confirms our build + the
+      paper-parameter restoration are correct. The paper's "OS/VT differ from CA/CP/VM" claim
+      shows up as VT plateauing near its start (0.91 normalized) while CP/OS drive the interface
+      down. OS reaching the lowest value is consistent with the paper's note that OS/VT fully
+      SEPARATE (rather than engulf) given time — separation also minimizes interface.
+    status: supported
+
+  - summary: |
+      CORRECTION to this study's own acceptance wording: fractional length starts at ~0.5 at
+      labelling (raw), not ~1.0. A random 50/50 label makes ~half of all interfaces heterotypic.
+      The paper's curves start at 1.0 only because they are NORMALIZED by the t=0 value.
+    evidence: "frac@10 across models: 0.461-0.524 (i.e. ~0.5), not ~1.0."
+    status: supported
 
 question: |
   Can we build Chaste plus the authors' CellBasedComparison2017 project from source and

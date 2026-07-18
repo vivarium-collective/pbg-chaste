@@ -62,6 +62,29 @@ def test_compare_aligns_and_diffs():
     assert cmp.max_abs_diff == pytest.approx(0.1)
 
 
+def test_load_source_merges_relaxation_and_sorting_phases(tmp_path):
+    """Regression: a model dir has one .dat per results_from_time_<t> phase; the
+    trajectory must merge them, not return only the pre-label relaxation (all-0)."""
+    from pbg_chaste.sorting_analysis import load_source
+    # mimic the C++ layout: CellSorting/Potts/results_from_time_{0,10}/...
+    base = tmp_path / "CellSorting" / "Potts"
+    (base / "results_from_time_0").mkdir(parents=True)
+    (base / "results_from_time_10").mkdir(parents=True)
+    # relaxation: no labels -> heterotypic length 0
+    (base / "results_from_time_0" / "heterotypicboundary.dat").write_text(
+        "0  0  100  0  40\n10  0  100  0  40\n")
+    # sorting: labels present, declines
+    (base / "results_from_time_10" / "heterotypicboundary.dat").write_text(
+        "10  50  100  20  40\n110  10  100  4  40\n")
+    trajs = load_source(str(tmp_path), "cxx")
+    assert "cp" in trajs  # Potts -> cp
+    tr = trajs["cp"]
+    # merged + time-ordered, later phase wins the t=10 tie (0.5, not 0.0)
+    assert tr.times == [0.0, 10.0, 110.0]
+    assert tr.at(10.0) == pytest.approx(0.5)
+    assert tr.endpoint == pytest.approx(0.1)
+
+
 def test_compare_skips_undefined_points():
     a = Trajectory(model="os", source="cxx", times=[0.0, 1.0],
                    fractional_length=[None, 0.4], pair_fraction=[None, 0.4])
