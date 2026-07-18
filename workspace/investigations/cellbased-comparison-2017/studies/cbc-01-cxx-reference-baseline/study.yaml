@@ -80,8 +80,23 @@ variants: []
 interventions: []
 runs: []
 
+prep_findings:
+  - summary: |
+      The cell-sorting paper-parameter restoration is a SINGLE line, confirmed against the clone.
+    evidence: |
+      test/TestCellSortingLiteratePaper.hpp line 81: `M_TIME_FOR_SIMULATION = 11.0` (CI value)
+      must become 100 (paper value; the commented-out paper block at lines 75-78 confirms 100).
+      M_TIME_TO_STEADY_STATE (10) and M_NUM_CELLS_ACROSS (20) are ALREADY at paper values in the
+      active block, so no other edit is needed for this case study. M_CELL_FLUCTUATION stays 1.0
+      (it is the k_pert knob; 1.0 is the Fig 2 baseline).
+    status: supported
+  - summary: "Build host chosen: the Mac mini (2.5 TiB free, Docker 29.5.2), against chaste/release."
+    status: supported
+
 notes: |
-  OPEN QUESTION — where this runs. Building Chaste from source is heavy (PETSc, VTK, HDF5,
-  Boost, a long CMake build) and this laptop is Apple Silicon, where the paper-scale runs would
-  additionally be under emulation. The Mac mini is the natural host. Decide before starting;
-  the build is too expensive to do twice.
+  DECIDED: builds/runs on the Mac mini (per the expert). The pbg-chaste branch is synced there
+  and the chaste/release image (prebuilt Chaste C++, ~24 GB) is being pulled. The project's
+  CMake declares COMPONENTS cell_based crypt, so the crypt component must be available in the
+  image even though the sorting case study does not use it — to be confirmed when the image
+  layout is inspected. Both mini and laptop are Apple Silicon, so runs are emulated regardless;
+  the mini's value is being persistent and out of the laptop's way.
