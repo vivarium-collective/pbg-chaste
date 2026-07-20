@@ -12,6 +12,16 @@ bigraph.
 stochastic / Tyson–Novak / Delta–Notch cell cycles, with play/pause cell-shape
 animations, Plotly growth curves, and interactive bigraph diagrams.
 
+**[▶ Investigation workbench — reproducing Osborne et al. 2017](https://vivarium-collective.github.io/pbg-chaste/investigations/cellbased-comparison-2017.html)**
+— a read-only workbench that reproduces the cell-sorting case study of
+[Osborne et al. 2017](https://doi.org/10.1371/journal.pcbi.1005387) (PLOS Comput
+Biol) and checks it, model by model, against a ground-truth baseline built from
+the authors' [own C++ code](https://github.com/Chaste/CellBasedComparison2017).
+Four of the paper's five model classes (CP, OS, VT, VM) reproduce the published
+fractional-boundary-length result to within run-to-run noise; the fifth (CA) is
+documented as out of reach of the Python bindings. Includes an interactive
+C++-vs-PyChaste trajectory overlay and a per-model reproducibility scorecard.
+
 The wrapper drives the **real Chaste C++ engine** — it does not reimplement
 any of Chaste's mechanics or ODEs. Chaste is notoriously hard to build from
 source (PETSc, VTK, HDF5, Boost, a long CMake build), so this package runs the
