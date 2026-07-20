@@ -11,14 +11,14 @@ module `pbg_emitters.parquet_emitter` not found during dynamic import
 skipping `pbg_emitters.run_reader` (missing optional dep `polars`)
 module `pbg_emitters.xarray_emitter` not found during dynamic import
     cp: solved to t=110 in 470s | cells=400 labelled=200 random_motion=temperature frac_end=0.1241
-    cp: copied .dat files under /Users/eranagmon/code/pbg-chaste/workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_cp/
+    cp: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_cp/
 === OS : building + relaxing (t=10) + labelling ===
     os: solved to t=110 in 97s | cells=400 labelled=200 random_motion=diffusion_force frac_end=0.0622
-    os: copied .dat files under /Users/eranagmon/code/pbg-chaste/workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_os/
+    os: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_os/
 === VT : building + relaxing (t=10) + labelling ===
     vt: solved to t=110 in 356s | cells=400 labelled=200 random_motion=unavailable frac_end=0.5069
-    vt: copied .dat files under /Users/eranagmon/code/pbg-chaste/workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_vt/
+    vt: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_vt/
 === VM : building + relaxing (t=10) + labelling ===
     vm: solved to t=110 in 129s | cells=400 labelled=200 random_motion=diffusion_force frac_end=0.2712
-    vm: copied .dat files under /Users/eranagmon/code/pbg-chaste/workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_vm/
+    vm: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_vm/
 === cbc-04 pychaste baseline DONE ===
