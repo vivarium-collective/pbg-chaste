@@ -59,6 +59,14 @@ DEFAULT_RUN_ROOT = Path(
 
 _SERVER_SRC = (Path(__file__).resolve().parent / "_chaste_server.py").read_text()
 
+#: The cell-sorting server (Osborne et al. 2017 differential-adhesion study).
+#: A separate resident script rather than another branch in _chaste_server's
+#: population chain: sorting needs OnLatticeSimulation + update rules for CP,
+#: which the force-based abstraction there does not generalise to.
+_SORTING_SERVER_SRC = (
+    Path(__file__).resolve().parent / "_sorting_server.py"
+).read_text()
+
 
 class ChasteDockerError(RuntimeError):
     """Raised when the Chaste container is unavailable or a run fails."""
@@ -131,11 +139,16 @@ class ChasteSession:
     """
 
     def __init__(self, params: dict, *, image: str = CHASTE_IMAGE,
-                 step_timeout: float = 120.0, start_timeout: float = 300.0):
+                 step_timeout: float = 120.0, start_timeout: float = 300.0,
+                 server_src: str | None = None, run_prefix: str | None = None):
         self.params = dict(params)
         self.image = image
         self.step_timeout = step_timeout
         self.start_timeout = start_timeout
+        #: Source of the in-container server. Defaults to the population x
+        #: cell-cycle server; pass _SORTING_SERVER_SRC for the sorting study.
+        self.server_src = server_src if server_src is not None else _SERVER_SRC
+        self.run_prefix = run_prefix
         self.workdir: Path | None = None
         self.container: str | None = None
         self._i = 0
@@ -152,12 +165,13 @@ class ChasteSession:
                 f"Chaste image '{self.image}' not present. Pull it once:\n"
                 f"    docker pull --platform {CHASTE_PLATFORM} {self.image}"
             )
-        self.workdir = new_run_dir(
-            prefix=f"{self.params.get('population','sim')}-"
-                   f"{self.params.get('cell_cycle','cc')}"
+        prefix = self.run_prefix or (
+            f"{self.params.get('population','sim')}-"
+            f"{self.params.get('cell_cycle','cc')}"
         )
+        self.workdir = new_run_dir(prefix=prefix)
         (self.workdir / "params.json").write_text(json.dumps(self.params))
-        (self.workdir / "server.py").write_text(_SERVER_SRC)
+        (self.workdir / "server.py").write_text(self.server_src)
 
         env_args = []
         for k, v in EMULATION_ENV.items():

@@ -1,0 +1,61 @@
+<Chaste>
+
+	<OnLatticeSimulation-2>
+		<Dt>0.01</Dt>
+		<EndTime>10</EndTime>
+		<UpdateCellPopulation>1</UpdateCellPopulation>
+		<SamplingTimestepMultiple>100</SamplingTimestepMultiple>
+		<UpdatingTimestepMultiple>1</UpdatingTimestepMultiple>
+		<OutputDivisionLocations>0</OutputDivisionLocations>
+		<OutputCellVelocities>0</OutputCellVelocities>
+	</OnLatticeSimulation-2>
+
+	<PottsBasedCellPopulation-2>
+		<Temperature>0.2</Temperature>
+		<NumSweepsPerTimestep>1</NumSweepsPerTimestep>
+		<UpdateNodesInRandomOrder>1</UpdateNodesInRandomOrder>
+		<IterateRandomlyOverUpdateRuleCollection>0</IterateRandomlyOverUpdateRuleCollection>
+		<OutputResultsForChasteVisualizer>1</OutputResultsForChasteVisualizer>
+	</PottsBasedCellPopulation-2>
+
+	<CellCycleModels>
+		<UniformG1GenerationalCellCycleModel>
+			<MaxTransitGenerations>3</MaxTransitGenerations>
+			<StemCellG1Duration>14</StemCellG1Duration>
+			<TransitCellG1Duration>2</TransitCellG1Duration>
+			<SDuration>5</SDuration>
+			<G2Duration>4</G2Duration>
+			<MDuration>1</MDuration>
+		</UniformG1GenerationalCellCycleModel>
+	</CellCycleModels>
+
+	<SrnModels>
+		<NullSrnModel>
+		</NullSrnModel>
+	</SrnModels>
+
+	<CellKillers>
+	</CellKillers>
+
+	<SimulationModifiers>
+	</SimulationModifiers>
+
+	<UpdateRules>
+		<VolumeConstraintPottsUpdateRule-2>
+			<DeformationEnergyParameter>0.1</DeformationEnergyParameter>
+			<MatureCellTargetVolume>16</MatureCellTargetVolume>
+		</VolumeConstraintPottsUpdateRule-2>
+		<SurfaceAreaConstraintPottsUpdateRule-2>
+			<DeformationEnergyParameter>0.01</DeformationEnergyParameter>
+			<MatureCellTargetSurfaceArea>16</MatureCellTargetSurfaceArea>
+		</SurfaceAreaConstraintPottsUpdateRule-2>
+		<DifferentialAdhesionPottsUpdateRule-2>
+			<LabelledCellLabelledCellAdhesionEnergyParameter>0.1</LabelledCellLabelledCellAdhesionEnergyParameter>
+			<LabelledCellCellAdhesionEnergyParameter>0.5</LabelledCellCellAdhesionEnergyParameter>
+			<LabelledCellBoundaryAdhesionEnergyParameter>1</LabelledCellBoundaryAdhesionEnergyParameter>
+			<CellCellAdhesionEnergyParameter>0.1</CellCellAdhesionEnergyParameter>
+			<CellBoundaryAdhesionEnergyParameter>0.2</CellBoundaryAdhesionEnergyParameter>
+		</DifferentialAdhesionPottsUpdateRule-2>
+	</UpdateRules>
+
+</Chaste>

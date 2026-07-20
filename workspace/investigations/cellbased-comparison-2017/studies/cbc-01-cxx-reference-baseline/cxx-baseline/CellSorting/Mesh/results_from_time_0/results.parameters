@@ -1,0 +1,80 @@
+<Chaste>
+
+	<OffLatticeSimulation-2-2>
+		<Dt>0.005</Dt>
+		<EndTime>10</EndTime>
+		<UpdateCellPopulation>1</UpdateCellPopulation>
+		<SamplingTimestepMultiple>200</SamplingTimestepMultiple>
+		<UpdatingTimestepMultiple>1</UpdatingTimestepMultiple>
+		<OutputDivisionLocations>0</OutputDivisionLocations>
+		<OutputCellVelocities>0</OutputCellVelocities>
+	</OffLatticeSimulation-2-2>
+
+	<MeshBasedCellPopulationWithGhostNodes-2>
+		<GhostCellSpringStiffness>15</GhostCellSpringStiffness>
+		<GhostGhostSpringStiffness>15</GhostGhostSpringStiffness>
+		<GhostSpringRestLength>1</GhostSpringRestLength>
+		<UseAreaBasedDampingConstant>0</UseAreaBasedDampingConstant>
+		<AreaBasedDampingConstantParameter>0.1</AreaBasedDampingConstantParameter>
+		<WriteVtkAsPoints>0</WriteVtkAsPoints>
+		<BoundVoronoiTessellation>0</BoundVoronoiTessellation>
+		<HasVariableRestLength>0</HasVariableRestLength>
+		<MeinekeDivisionSeparation>0.3</MeinekeDivisionSeparation>
+		<CentreBasedDivisionRule>
+			<RandomDirectionCentreBasedDivisionRule-2-2>
+			</RandomDirectionCentreBasedDivisionRule-2-2>
+		</CentreBasedDivisionRule>
+		<DampingConstantNormal>1</DampingConstantNormal>
+		<DampingConstantMutant>1</DampingConstantMutant>
+		<OutputResultsForChasteVisualizer>1</OutputResultsForChasteVisualizer>
+	</MeshBasedCellPopulationWithGhostNodes-2>
+
+	<CellCycleModels>
+		<UniformG1GenerationalCellCycleModel>
+			<MaxTransitGenerations>3</MaxTransitGenerations>
+			<StemCellG1Duration>14</StemCellG1Duration>
+			<TransitCellG1Duration>2</TransitCellG1Duration>
+			<SDuration>5</SDuration>
+			<G2Duration>4</G2Duration>
+			<MDuration>1</MDuration>
+		</UniformG1GenerationalCellCycleModel>
+	</CellCycleModels>
+
+	<SrnModels>
+		<NullSrnModel>
+		</NullSrnModel>
+	</SrnModels>
+
+	<CellKillers>
+	</CellKillers>
+
+	<SimulationModifiers>
+	</SimulationModifiers>
+
+	<Forces>
+		<DifferentialAdhesionGeneralisedLinearSpringForce-2-2>
+			<HomotypicLabelledSpringConstantMultiplier>1</HomotypicLabelledSpringConstantMultiplier>
+			<HeterotypicSpringConstantMultiplier>0.1</HeterotypicSpringConstantMultiplier>
+			<MeinekeSpringStiffness>50</MeinekeSpringStiffness>
+			<MeinekeDivisionRestingSpringLength>0.5</MeinekeDivisionRestingSpringLength>
+			<MeinekeSpringGrowthDuration>1</MeinekeSpringGrowthDuration>
+			<UseCutOffLength>0</UseCutOffLength>
+			<CutOffLength>1.79769e+308</CutOffLength>
+		</DifferentialAdhesionGeneralisedLinearSpringForce-2-2>
+		<RandomMotionForce-2>
+			<MovementParameter>0.1</MovementParameter> 
+		</RandomMotionForce-2>
+	</Forces>
+
+	<CellPopulationBoundaryConditions>
+	</CellPopulationBoundaryConditions>
+
+	<NumericalMethod>
+		<ForwardEulerNumericalMethod-2-2>
+			<UseAdaptiveTimestep>0</UseAdaptiveTimestep> 
+			<UseUpdateNodeLocation>0</UseUpdateNodeLocation> 
+			<GhostNodeForcesEnabled>1</GhostNodeForcesEnabled> 
+		</ForwardEulerNumericalMethod-2-2>
+	</NumericalMethod>
+
+</Chaste>

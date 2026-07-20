@@ -1,0 +1,78 @@
+<Chaste>
+
+	<OffLatticeSimulation-2-2>
+		<Dt>0.005</Dt>
+		<EndTime>10</EndTime>
+		<UpdateCellPopulation>1</UpdateCellPopulation>
+		<SamplingTimestepMultiple>200</SamplingTimestepMultiple>
+		<UpdatingTimestepMultiple>1</UpdatingTimestepMultiple>
+		<OutputDivisionLocations>0</OutputDivisionLocations>
+		<OutputCellVelocities>0</OutputCellVelocities>
+	</OffLatticeSimulation-2-2>
+
+	<VertexBasedCellPopulation-2>
+		<CellRearrangementThreshold>0.1</CellRearrangementThreshold>
+		<T2Threshold>0.001</T2Threshold>
+		<CellRearrangementRatio>1.5</CellRearrangementRatio>
+		<OutputCellRearrangementLocations>1</OutputCellRearrangementLocations>
+		<VertexBasedDivisionRule>
+			<ShortAxisVertexBasedDivisionRule-2>
+			</ShortAxisVertexBasedDivisionRule-2>
+		</VertexBasedDivisionRule>
+		<DampingConstantNormal>1</DampingConstantNormal>
+		<DampingConstantMutant>1</DampingConstantMutant>
+		<OutputResultsForChasteVisualizer>1</OutputResultsForChasteVisualizer>
+	</VertexBasedCellPopulation-2>
+
+	<CellCycleModels>
+		<UniformG1GenerationalCellCycleModel>
+			<MaxTransitGenerations>3</MaxTransitGenerations>
+			<StemCellG1Duration>14</StemCellG1Duration>
+			<TransitCellG1Duration>2</TransitCellG1Duration>
+			<SDuration>5</SDuration>
+			<G2Duration>4</G2Duration>
+			<MDuration>1</MDuration>
+		</UniformG1GenerationalCellCycleModel>
+	</CellCycleModels>
+
+	<SrnModels>
+		<NullSrnModel>
+		</NullSrnModel>
+	</SrnModels>
+
+	<CellKillers>
+		<T2SwapCellKiller-2>
+		</T2SwapCellKiller-2>
+	</CellKillers>
+
+	<SimulationModifiers>
+	</SimulationModifiers>
+
+	<Forces>
+		<NagaiHondaDifferentialAdhesionForce-2>
+			<NagaiHondaLabelledCellLabelledCellAdhesionEnergyParameter>1</NagaiHondaLabelledCellLabelledCellAdhesionEnergyParameter> 
+			<NagaiHondaLabelledCellCellAdhesionEnergyParameter>2</NagaiHondaLabelledCellCellAdhesionEnergyParameter> 
+			<NagaiHondaLabelledCellBoundaryAdhesionEnergyParameter>20</NagaiHondaLabelledCellBoundaryAdhesionEnergyParameter> 
+			<NagaiHondaDeformationEnergyParameter>50</NagaiHondaDeformationEnergyParameter>
+			<NagaiHondaMembraneSurfaceEnergyParameter>1</NagaiHondaMembraneSurfaceEnergyParameter>
+			<NagaiHondaCellCellAdhesionEnergyParameter>1</NagaiHondaCellCellAdhesionEnergyParameter>
+			<NagaiHondaCellBoundaryAdhesionEnergyParameter>10</NagaiHondaCellBoundaryAdhesionEnergyParameter>
+			<NagaiHondaTargetAreaParameter>1</NagaiHondaTargetAreaParameter>
+		</NagaiHondaDifferentialAdhesionForce-2>
+		<RandomMotionForce-2>
+			<MovementParameter>0.1</MovementParameter> 
+		</RandomMotionForce-2>
+	</Forces>
+
+	<CellPopulationBoundaryConditions>
+	</CellPopulationBoundaryConditions>
+
+	<NumericalMethod>
+		<ForwardEulerNumericalMethod-2-2>
+			<UseAdaptiveTimestep>0</UseAdaptiveTimestep> 
+			<UseUpdateNodeLocation>0</UseUpdateNodeLocation> 
+			<GhostNodeForcesEnabled>0</GhostNodeForcesEnabled> 
+		</ForwardEulerNumericalMethod-2-2>
+	</NumericalMethod>
+
+</Chaste>

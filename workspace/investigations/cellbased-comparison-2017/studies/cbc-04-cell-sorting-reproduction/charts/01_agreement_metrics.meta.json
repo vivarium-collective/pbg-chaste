@@ -1,0 +1,5 @@
+{
+  "title": "Agreement metrics scorecard",
+  "caption": "Per-model RMSE, MAE, range-normalized RMSE, area-between-curves, endpoint gap, and Pearson correlation. Greener = closer to the C++ reference.",
+  "interpretation": "All four models agree to RMSE \u2264 0.052 and r \u2265 0.93; VM is essentially identical (RMSE 0.005, r 0.999)."
+}

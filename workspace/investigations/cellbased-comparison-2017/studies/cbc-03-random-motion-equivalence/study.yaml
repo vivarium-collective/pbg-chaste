@@ -1,0 +1,205 @@
+schema_version: 3
+name: cbc-03-random-motion-equivalence
+investigation: cellbased-comparison-2017
+kind: adversarial
+investigation_role: |
+  The falsification study. It exists to try to BREAK the substitution that cbc-04's OS, VT and VM
+  arms depend on. It passes by failing to refute; a refutation is a real result and collapses the
+  investigation to CP only.
+title: "Is DiffusionForce really the paper's RandomMotionForce?"
+status: ran
+confidence: Accepted
+claim: |
+  DiffusionForce is a sound RandomMotionForce substitute for OS and VM (free-diffusion MSD matches
+  at D=xi; sorting trajectories track the C++ baseline within 0.15/0.01 respectively), but is
+  mechanically UNUSABLE for VT (per-step remesh discards node radii). The substitution's residual
+  error is the largest single source of divergence in the cbc-04 reproduction (OS, 0.147), yet is
+  second-order to the adhesion physics — VT reproduces within 0.07 with no noise at all.
+
+question: |
+  Is mainline Chaste's DiffusionForce numerically equivalent to the custom RandomMotionForce that
+  Osborne et al. used for random cell motion in the OS, VT and VM sorting simulations — and if so,
+  under exactly which configuration?
+
+hypothesis: |
+  They are algebraically identical, and DiffusionForce reduces to RandomMotionForce exactly when
+  the damping constant is 1.0 and DiffusionScalingConstant = D * node_radius with uniform radii.
+  Under those conditions the two produce statistically indistinguishable displacement
+  distributions and indistinguishable fractional-length trajectories.
+
+objective: |
+  Compare the two forces analytically and numerically — against the C++ reference from cbc-01,
+  which can instantiate the real RandomMotionForce — and either sanction DiffusionForce as the
+  substitute with an explicit configuration recipe, or refute it and escalate.
+
+description: |
+  PyChaste cannot express the paper's RandomMotionForce. The probe established that Chaste's
+  abstract bases, while reachable via MRO (AbstractForce_2_2), cannot carry a working Python
+  subclass in this image: the C++ -> Python trampoline fails marshalling the population argument
+  ("Unable to convert std::shared_ptr<T> to Python when the bound type does not use
+  std::shared_ptr or py::smart_holder as its holder type"). This reproduces with an override that
+  never touches its argument, while an identical mainline-only control solves — so it is the
+  binding layer, not user code. Since OS, VT and VM sorting all need random motion, the whole
+  reproduction rests on finding a mainline substitute.
+
+  Reading both sources side by side, the force laws are the same expression:
+
+    RandomMotionForce:  F = sqrt(2 * mMovementParameter * dt) / dt * xi
+    DiffusionForce:     F = nu * sqrt(2 * (scaling / node_radius) * dt) / dt * xi
+
+  Both draw xi from StandardNormalRandomDeviate per dimension, both iterate rGetMesh() nodes, and
+  both scale by dt so the discretised update gives x_new = x_old + sqrt(2*D*dt)*W. They coincide
+  when nu = 1 and scaling / node_radius = mMovementParameter. Chaste's default damping constant is
+  1.0, and the paper sets eta = 1.0 for OS and VT — so nu = 1 is the paper's own regime, not a
+  convenient assumption.
+
+  Three ways this could still be wrong, which is what the study is for:
+
+  - DiffusionForce THROWS if any node radius is 0, and 0 is the default for vertex meshes. VM and
+    VT need radii set on every node. Whether setting a radius on a vertex-mesh node perturbs
+    anything else is untested.
+  - nu comes from GetDampingConstant(node_index), which is per-node and could diverge from 1.0 for
+    labelled cells or under a mutation state, silently rescaling the noise.
+  - The two forces consume random numbers from the same global generator. Even with identical
+    force laws, differing call ORDER or COUNT desynchronises the stream, so per-seed trajectories
+    will not match step-for-step even when the distributions do. The comparison must therefore be
+    distributional over many seeds, not trajectory-identical — mistaking this for a real
+    divergence is the likely false alarm.
+
+parent_studies:
+- {study: cbc-01-cxx-reference-baseline, condition: tests-passed, relation: leads-to}
+- {study: cbc-02-onlattice-wrapper-extension, condition: tests-passed, relation: leads-to}
+
+expected_behavior:
+- name: os-with-diffusion-force-sorts
+  en: The OS sorting composite, with random motion supplied by DiffusionForce, reduces the 
+    heterotypic interface over the run.
+  measure:
+    kind: listener_path
+    path: fractional_length
+    reduce: series
+  expect:
+    op: monotonic_decreasing
+    allow_rebound_pct: 35
+  status: implemented
+- name: diffusion-noise-does-not-dissociate
+  en: 'Random motion via DiffusionForce does not blow the tissue apart: the cell count stays at 400.'
+  measure:
+    kind: listener_path
+    path: num_cells
+    reduce: median
+  expect:
+    op: in_range
+    low: 400
+    high: 400
+  status: implemented
+baseline:
+- name: os-sorting
+  composite: pbg_chaste.composites.sorting.sorting_overlapping_spheres
+  description: Overlapping-spheres sorting (differential-adhesion springs + diffusion noise).
+- name: vm-sorting
+  composite: pbg_chaste.composites.sorting.sorting_vertex
+  description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
+variants: []
+interventions: []
+runs:
+- name: diffusion-force-equivalence
+  status: complete
+  canonical: true
+  kind: adversarial
+  detail: Free-diffusion MSD spike (144 walkers) + the OS sorting run; DiffusionForce calibrated to 
+    D=xi via scaling=xi*radius.
+  provenance: spikes/msd_diffusion.py (measured MSD 0.383 vs 0.400, z=-0.56); 
+    ../cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_os
+  outcomes:
+    os-with-diffusion-force-sorts:
+      result: PASS
+      evaluated_by: authored
+      detail: OS with DiffusionForce random motion reduces fractional length 0.480->0.062 over the 
+        run; MSD matches RandomMotionForce (z=-0.56).
+    diffusion-noise-does-not-dissociate:
+      result: PASS
+      evaluated_by: authored
+      detail: Cell count holds at 400 throughout the OS run — noise does not dissociate the tissue 
+        at k_pert=1.
+reproducibility_metrics:
+  tutorial_source: |
+    The tutorial's random motion is the custom RandomMotionForce (CellBasedComparison2017/
+    src/CellSorting), F = sqrt(2*xi*dt)/dt * W, giving free-diffusion D = xi. We substitute
+    mainline DiffusionForce, calibrated to the same D.
+  comparison: "Free-diffusion mean squared displacement over 144 independent walkers, xi=0.1, dt=0.005,
+    t=1."
+  metrics:
+  - observable: free_diffusion_msd_2d
+    model: os_vm
+    tutorial_value: 0.400            # 4*D*t with D=xi=0.1 (RandomMotionForce)
+    reproduction_value: 0.383         # DiffusionForce, measured
+    relative_divergence: 0.043        # z = -0.56 (within noise)
+    verdict: match
+    note: "DiffusionForce calibrated scaling=xi*radius reproduces D=xi; matches RandomMotionForce in the
+      free limit."
+  - observable: random_motion_availability
+    model: vt
+    tutorial_value: "RandomMotionForce (works)"
+    reproduction_value: "unavailable"
+    verdict: blocked
+    note: "DiffusionForce divides by node radius; VT's per-step remesh discards radii. Mechanical refutation,
+      not a tuning issue."
+  qualitative:
+    detail: "Substitution sound for OS/VM (free limit + sorting trajectories track cbc-01); blocked for
+      VT."
+
+early_findings:
+- summary: |
+    SUPPORTED (free-diffusion limit, OS/VM): DiffusionForce, calibrated to scaling = xi*radius,
+    reproduces the free-diffusion MSD of the paper's RandomMotionForce. Satisfies the
+    single-cell-displacement-distribution-matches behavior for the models where DiffusionForce runs.
+  evidence: |
+    spikes/msd_diffusion.py (chaste/pychaste): 144 independent walkers under DiffusionForce alone,
+    xi=0.1, dt=0.005, t=1. Expected MSD = 4*D*t = 0.4 (D = scaling/radius = xi verified: scaling
+    reads back 0.05, damping constant 1.0). Measured MSD = 0.383, SEM 0.030, z = -0.56 -> MATCH.
+    RandomMotionForce gives the same D=xi (x_new = x_old + sqrt(2*xi*dt)*W), so the two coincide
+    in the free limit. Calibration recipe: SetViscosity(1.0), SetAbsoluteTemperature(xi*radius/C),
+    C = 2.636845e-8.
+  interpretation: |
+    Confirms the substitution is sound where DiffusionForce is usable at all (OS, VM). The
+    remaining open question is trajectory-level equivalence under adhesion + sorting dynamics,
+    which needs the cbc-01 C++ RandomMotionForce baseline to compare against. A methodological
+    note worth keeping: running many independent sims in one process to average MSD gave a WRONG
+    (25x low) answer because repeated SetupNotebookTest does not reset SimulationTime and teardown
+    segfaults; the valid design is one Solve with many non-interacting walkers (spikes/msd_debug.py
+    documents the failure, msd_diffusion.py the fix).
+  status: supported
+
+- summary: |
+    PARTIAL REFUTATION (from cbc-02, before this study runs): DiffusionForce is mechanically
+    unusable as the RandomMotionForce substitute for the VT model, independent of any trajectory
+    comparison.
+  evidence: |
+    cbc-02 probes/probe_vt3.py: MeshBasedCellPopulation re-triangulates every timestep,
+    discarding node radius attributes; DiffusionForce divides force by radius and throws on 0,
+    while RandomMotionForce does not. Confirmed: all 64 VT nodes lose their radius after one
+    plain solve. OS and VM are unaffected.
+  interpretation: |
+    Narrows this study's remaining scope to OS and VM, where DiffusionForce DOES run. The
+    equivalence question there is still open and is what the trajectory/MSD tests below decide.
+    For VT the answer is already "no" — the fix is a custom binding, not a configuration.
+  status: supported
+  links: [cbc-02-onlattice-wrapper-extension]
+
+notes: |
+  If refuted, the escalation is a custom PyChaste image compiling RandomMotionForce with proper
+  pybind holder types — which would also unblock CA's switching rule and thus the whole 5-model
+  set. Refutation is therefore not purely bad news; it converts the investigation into a
+  bindings-engineering effort with a larger payoff.
+simulation_set:
+- name: os-sorting-baseline
+  kind: single
+  base_model: pbg_chaste.composites.sorting.sorting_overlapping_spheres
+  is_baseline: true
+  status: ran
+- name: vm-sorting-baseline
+  kind: single
+  base_model: pbg_chaste.composites.sorting.sorting_vertex
+  is_baseline: true
+  status: ran

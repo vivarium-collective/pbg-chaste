@@ -1,0 +1,5 @@
+{
+  "title": "Fractional boundary length \u2014 PyChaste vs C++ tutorial",
+  "caption": "Sorting trajectories (normalized to labelling) for the four reachable models. Teal = authors' C++ code, coral dashed = pbg-chaste; shaded band is the divergence, dots mark t=110.",
+  "interpretation": "Shape agreement is near-perfect (Pearson r 0.93\u20130.999); VM RMSE 0.005, CP 0.044, VT 0.052, OS 0.038."
+}

@@ -17,6 +17,12 @@ from . import runtime
 POPULATIONS = ("mesh", "vertex", "node")
 CELL_CYCLES = ("uniform", "stochastic", "tyson_novak", "delta_notch")
 
+#: Model classes of Osborne et al. 2017 that PyChaste can reach.
+#: CA is absent: its DifferentialAdhesionCaSwitchingUpdateRule is custom to the
+#: paper's repo and AbstractCaSwitchingUpdateRule_2 exposes no constructor to
+#: subclass. See workspace/investigations/cellbased-comparison-2017/probes/.
+SORTING_MODELS = ("cp", "os", "vt", "vm")
+
 
 class ChasteSimulationProcess(Process):
     """Advance a real Chaste ``OffLatticeSimulation`` one interval per update.
@@ -131,6 +137,140 @@ class ChasteSimulationProcess(Process):
 
     def __del__(self):
         # best-effort container cleanup; the container also self-exits when idle
+        try:
+            if self._session is not None:
+                self._session.close()
+        except Exception:
+            pass
+
+
+class ChasteCellSortingProcess(Process):
+    """Cell sorting by differential adhesion (Osborne et al. 2017, Figs 2-4).
+
+    Reproduces the paper's first case study across the four model classes
+    PyChaste can reach — ``cp`` (cellular Potts), ``os`` (overlapping spheres),
+    ``vt`` (Voronoi tessellation, with ghost nodes) and ``vm`` (vertex) — driving
+    the real Chaste engine in a resident container.
+
+    The protocol matches the authors' TestCellSortingLiteratePaper.hpp: a tissue
+    of non-dividing cells relaxes for ``relax_time`` hours, then ``label_fraction``
+    of cells are labelled with ``CellLabel``, then the simulation steps on.
+
+    ``ca`` is deliberately unsupported — see :data:`SORTING_MODELS`.
+
+    Outputs
+    -------
+    fractional_length : overwrite[float]
+        The paper's sorting measure: heterotypic boundary length / total shared
+        edge length, from Chaste's own ``HeterotypicBoundaryLengthWriter``. 1.0 is
+        fully mixed, 0.0 fully sorted. Computed here because the writer emits the
+        two lengths separately and does not divide.
+    pair_fraction : overwrite[float]
+        Heterotypic pairs / total pairs — the same ratio UNWEIGHTED by edge length.
+        Diagnostic, not a paper measure: when it equals ``fractional_length`` the
+        length weighting is carrying no information, which for ``os`` means the
+        tissue has not compressed out of the tangent configuration.
+    num_cells, num_labelled : integer
+        Real-cell count (ghost nodes excluded) and the labelled subset.
+    random_motion : overwrite[string]
+        How the paper's RandomMotionForce is supplied: ``"temperature"`` (cp, the
+        population temperature), ``"diffusion_force"`` (os/vm, via mainline
+        DiffusionForce — pending cbc-03's equivalence check), or ``"unavailable"``
+        (vt: DiffusionForce is incompatible with vt's per-step remesh, so vt runs
+        deterministically here). Not silent — a consumer can see when noise is off.
+    positions, labels : overwrite[...]
+        Cell centres and their 0/1 label, aligned 1:1.
+    """
+
+    config_schema = {
+        "model": {"_type": "string", "_default": "cp"},
+        "width": {"_type": "integer", "_default": 20},
+        "height": {"_type": "integer", "_default": 20},
+        "k_pert": {"_type": "float", "_default": 1.0},
+        "relax_time": {"_type": "float", "_default": 10.0},
+        "label_fraction": {"_type": "float", "_default": 0.5},
+        "ghost_layers": {"_type": "integer", "_default": 20},
+        "sampling_multiple": {"_type": "integer", "_default": 100},
+        "seed": {"_type": "integer", "_default": 0},
+        "timeout": {"_type": "float", "_default": 600.0},
+        "start_timeout": {"_type": "float", "_default": 1800.0},
+    }
+
+    def __init__(self, config=None, core=None):
+        super().__init__(config, core)
+        model = self.config["model"]
+        if model == "ca":
+            raise NotImplementedError(
+                "model 'ca' is not supported: the paper's cellular automaton uses "
+                "DifferentialAdhesionCaSwitchingUpdateRule, a custom class in "
+                "Chaste/CellBasedComparison2017, and PyChaste exposes no "
+                "constructible AbstractCaSwitchingUpdateRule base to subclass. "
+                f"Use one of {SORTING_MODELS}."
+            )
+        if model not in SORTING_MODELS:
+            raise ValueError(
+                f"model must be one of {SORTING_MODELS}, got {model!r}"
+            )
+        self._session: runtime.ChasteSession | None = None
+
+    def inputs(self):
+        return {}
+
+    def outputs(self):
+        return {
+            "fractional_length": "overwrite[float]",
+            "pair_fraction": "overwrite[float]",
+            "num_cells": "integer",
+            "num_labelled": "integer",
+            "random_motion": "overwrite[string]",
+            "positions": "overwrite[list[list[float]]]",
+            "labels": "overwrite[list[integer]]",
+        }
+
+    def initial_state(self):
+        return {}
+
+    def _ensure_session(self):
+        if self._session is None:
+            self._session = runtime.ChasteSession(
+                {
+                    "model": self.config["model"],
+                    "width": self.config["width"],
+                    "height": self.config["height"],
+                    "k_pert": self.config["k_pert"],
+                    "relax_time": self.config["relax_time"],
+                    "label_fraction": self.config["label_fraction"],
+                    "ghost_layers": self.config["ghost_layers"],
+                    "sampling_multiple": self.config["sampling_multiple"],
+                    "seed": self.config["seed"],
+                },
+                server_src=runtime._SORTING_SERVER_SRC,
+                run_prefix=f"sort-{self.config['model']}",
+                step_timeout=float(self.config["timeout"]),
+                start_timeout=float(self.config["start_timeout"]),
+            )
+            self._session.start()
+
+    def _shape(self, result):
+        frac = result.get("fractional_length")
+        pair = result.get("pair_fraction")
+        return {
+            # None until the writer has emitted a row; surfaced as NaN rather
+            # than 0.0, which would read as "perfectly sorted"
+            "fractional_length": float("nan") if frac is None else float(frac),
+            "pair_fraction": float("nan") if pair is None else float(pair),
+            "num_cells": int(result.get("num_cells", 0)),
+            "num_labelled": int(result.get("num_labelled", 0)),
+            "random_motion": str(result.get("random_motion", "unknown")),
+            "positions": result.get("positions", []),
+            "labels": result.get("labels", []),
+        }
+
+    def update(self, state, interval):
+        self._ensure_session()
+        return self._shape(self._session.step(interval))
+
+    def __del__(self):
         try:
             if self._session is not None:
                 self._session.close()

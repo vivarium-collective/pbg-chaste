@@ -22,10 +22,13 @@ END = "<!-- END dashboard -->"
 def _block(dashboard_url: str, reports_url: str) -> str:
     return (
         f"{BEGIN}\n"
-        f"> ## 📊 [**Live dashboard →**]({dashboard_url})\n"
-        f"> Browse every investigation & study interactively, or read the "
-        f"[published investigation reports]({reports_url}). "
-        f"Auto-published from `main` on every merge.\n"
+        f"> ## 🔬 [Read-only workbench →]({dashboard_url})\n"
+        f">\n"
+        f"> **The full vivarium-workbench, live in your browser — no install.** "
+        f"Every investigation, study, composite and simulation, browsable with no "
+        f"server. Prefer a written write-up? See the "
+        f"[investigation reports]({reports_url}). Auto-published from `main` on "
+        f"every merge.\n"
         f"{END}"
     )
 

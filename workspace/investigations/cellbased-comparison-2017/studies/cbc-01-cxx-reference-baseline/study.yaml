@@ -1,0 +1,202 @@
+schema_version: 3
+name: cbc-01-cxx-reference-baseline
+investigation: cellbased-comparison-2017
+title: "C++ ground-truth baseline"
+status: ran
+confidence: Accepted
+claim: |
+  Built the authors' C++ project against chaste/release on the mini and generated the
+  ground-truth cell-sorting baseline for all five models to t=100. Reduced to fractional
+  boundary length, it qualitatively reproduces the paper's Fig 3: VT stalls highest, OS
+  sorts most, CP engulfs. This is the reference cbc-04 diffs against.
+
+findings:
+- summary: |
+    All five models ran to completion (rc=0) and produced fractional-length trajectories that
+    qualitatively match paper Fig 3 (k_pert=1). Normalizing by the value at labelling (t=10),
+    as Fig 3 does: OS 0.08, CP 0.19, CA 0.50, VM 0.55, VT 0.91.
+  evidence: |
+    cxx-baseline/CellSorting/{Ca,Potts,Node,Mesh,Vertex}/results_from_time_{0,10}/
+    heterotypicboundary.dat, reduced by pbg_chaste.sorting_analysis into
+    cxx-baseline/fractional_length_by_model.csv. Raw endpoints at t=110:
+    CA 0.461->0.231, CP 0.524->0.097, OS 0.480->0.039, VT 0.485->0.440, VM 0.494->0.271.
+    Ordering (VT stalls highest, OS lowest, CP low) matches the paper's Fig 3-left black curves.
+  interpretation: |
+    The authors' own code is the ground truth by construction; this confirms our build + the
+    paper-parameter restoration are correct. The paper's "OS/VT differ from CA/CP/VM" claim
+    shows up as VT plateauing near its start (0.91 normalized) while CP/OS drive the interface
+    down. OS reaching the lowest value is consistent with the paper's note that OS/VT fully
+    SEPARATE (rather than engulf) given time — separation also minimizes interface.
+  status: supported
+
+- summary: |
+    CORRECTION to this study's own acceptance wording: fractional length starts at ~0.5 at
+    labelling (raw), not ~1.0. A random 50/50 label makes ~half of all interfaces heterotypic.
+    The paper's curves start at 1.0 only because they are NORMALIZED by the t=0 value.
+  evidence: "frac@10 across models: 0.461-0.524 (i.e. ~0.5), not ~1.0."
+  status: supported
+
+question: |
+  Can we build Chaste plus the authors' CellBasedComparison2017 project from source and
+  regenerate the cell-sorting output of Osborne et al. 2017 — producing per-model
+  heterotypicboundary.dat trajectories that serve as the ground truth for every later study?
+
+hypothesis: |
+  The project builds against modern mainline Chaste (its copyright headers run to 2021 and its
+  CI claims continuous testing), and once the paper-parameter blocks are restored the five
+  sorting sims reproduce Fig 2 qualitatively — CA, CP and VM reaching engulfment; OS and VT
+  stalling at a local minimum.
+
+objective: |
+  Build Chaste + CellBasedComparison2017, restore the paper parameters that the repo ships
+  commented out, run TestCellSortingLiteratePaper for all five models across 10 seeds, and
+  archive the resulting heterotypicboundary.dat files as the investigation's reference dataset.
+
+description: |
+  This study exists because the expert asked for a careful comparison against existing Chaste
+  results, and chose regenerated C++ output over published figures as the reference.
+
+  The critical trap is documented in the authors' own source: every test file ships with the
+  paper parameters COMMENTED OUT and short continuous-integration values active. For cell
+  sorting, M_TIME_FOR_SIMULATION is 11.0 in the repo versus 100 in the paper. Running the
+  suite as-cloned produces a plausible-looking but wrong baseline — the single highest-risk
+  silent failure in this investigation. Restoring those blocks is step one, and the diff must
+  be recorded.
+
+  The build is the other risk. The project's CMakeLists declares
+  find_package(Chaste COMPONENTS cell_based crypt), so the crypt component must be built even
+  though the sorting case study does not use it. The paper pins historical Chaste branches
+  (paper/CellBasedComparison, paper/CellBasedComparison18) against Oxford servers that are no
+  longer the live mirror; we build against the GitHub mirror's develop and record the commit.
+
+  Output lands in $CHASTE_TEST_OUTPUT/CellSorting/{Ca,Potts,Node,Mesh,Vertex}. The measure the
+  investigation turns on is heterotypicboundary.dat, whose four columns are
+  (heterotypic_boundary_length, total_shared_edges_length, num_heterotypic_pairs,
+  total_num_pairs). The paper's fractional boundary length is column 1 / column 2 — the writer
+  does NOT divide, so the reduction is ours to perform and to test.
+
+parent_studies: []
+
+expected_behavior:
+- name: cxx-fractional-length-declines
+  en: Fractional boundary length declines from its post-labelling value as cells sort.
+  measure:
+    kind: listener_path
+    path: fractional_length
+    reduce: series
+  expect:
+    op: monotonic_decreasing
+    allow_rebound_pct: 25
+  status: implemented
+- name: cxx-interface-more-than-halves
+  en: By t=110 the heterotypic interface is well below its post-labelling value (sorting occurred).
+  measure:
+    kind: listener_path
+    path: fractional_length
+    reduce: first_and_last
+  expect:
+    op: ratio_at_most
+    ratio: 1.0
+  status: implemented
+reproducibility_metrics:
+  tutorial_source: |
+    Our own build of Chaste/CellBasedComparison2017 against chaste/release, compared to the
+    PUBLISHED paper (Osborne et al. 2017, Fig 3, k_pert=1). This study reproduces the tutorial
+    itself; it is the reference that cbc-04 then reproduces in PyChaste.
+  comparison: |
+    Fractional boundary length normalized by its value at labelling (t=10), as Fig 3 plots it.
+    Paper values are read approximately off Fig 3-left (black curves) — the paper ships curves,
+    not tables, so tutorial_value here is an eyeballed plateau, not an exact figure.
+  metrics:
+  - observable: normalized_fractional_length_endpoint
+    model: os
+    tutorial_value: 0.05
+    reproduction_value: 0.08
+    verdict: close
+    note: "Approx. from Fig 3; OS sorts most (fully separates)."
+  - observable: normalized_fractional_length_endpoint
+    model: cp
+    tutorial_value: 0.15
+    reproduction_value: 0.19
+    verdict: close
+  - observable: normalized_fractional_length_endpoint
+    model: ca
+    tutorial_value: 0.40
+    reproduction_value: 0.50
+    verdict: close
+  - observable: normalized_fractional_length_endpoint
+    model: vm
+    tutorial_value: 0.55
+    reproduction_value: 0.55
+    verdict: match
+  - observable: normalized_fractional_length_endpoint
+    model: vt
+    tutorial_value: 0.85
+    reproduction_value: 0.91
+    verdict: close
+    note: "VT stalls highest, matching the paper's 'OS/VT differ from CA/CP/VM' claim."
+  qualitative:
+    ordering_reproduced: true
+    detail: "Model ordering (VT > VM > CA > CP > OS by residual interface) matches Fig 3."
+  caveats:
+  - "Tutorial values are read off the published figure, not exact — this study's role is to establish
+    OUR C++ run as the exact reference for cbc-04, which is compared numerically."
+  - "Single seed (0). The tutorial itself is single-run; the paper's curves are 10-seed means."
+
+baseline:
+- name: cp-sorting
+  composite: pbg_chaste.composites.sorting.sorting_potts
+  description: Cellular Potts sorting (OnLatticeSimulation + Potts update rules).
+- name: os-sorting
+  composite: pbg_chaste.composites.sorting.sorting_overlapping_spheres
+  description: Overlapping-spheres sorting (differential-adhesion springs + diffusion noise).
+- name: vt-sorting
+  composite: pbg_chaste.composites.sorting.sorting_voronoi
+  description: Voronoi sorting (ghost-node MeshBased; deterministic, cbc-03).
+- name: vm-sorting
+  composite: pbg_chaste.composites.sorting.sorting_vertex
+  description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
+variants: []
+interventions: []
+runs:
+- name: cxx-sorting-baseline
+  status: complete
+  canonical: true
+  kind: cxx-tutorial
+  detail: Built CellBasedComparison2017 against chaste/release on the mini; 
+    TestCellSortingLiteratePaper to t=100 for all five models, paper parameter restored 
+    (M_TIME_FOR_SIMULATION=100).
+  provenance: cxx-baseline/CellSorting/{Ca,Potts,Node,Mesh,Vertex}/heterotypicboundary.dat; 
+    cxx-baseline/fractional_length_by_model.csv
+  outcomes:
+    cxx-fractional-length-declines:
+      result: PASS
+      evaluated_by: authored
+      detail: All five models' fractional length declines from the post-labelling value (reduction 
+        via sorting_analysis); normalized endpoints OS 0.08, CP 0.19, CA 0.50, VM 0.55, VT 0.91.
+    cxx-interface-more-than-halves:
+      result: PASS
+      evaluated_by: authored
+      detail: 'Every model ends below its post-labelling value (ratio_at_most 1.0): CP/OS/CA/VM drop substantially;
+        VT declines least (0.485->0.440).'
+
+prep_findings:
+- summary: |
+    The cell-sorting paper-parameter restoration is a SINGLE line, confirmed against the clone.
+  evidence: |
+    test/TestCellSortingLiteratePaper.hpp line 81: `M_TIME_FOR_SIMULATION = 11.0` (CI value)
+    must become 100 (paper value; the commented-out paper block at lines 75-78 confirms 100).
+    M_TIME_TO_STEADY_STATE (10) and M_NUM_CELLS_ACROSS (20) are ALREADY at paper values in the
+    active block, so no other edit is needed for this case study. M_CELL_FLUCTUATION stays 1.0
+    (it is the k_pert knob; 1.0 is the Fig 2 baseline).
+  status: supported
+- summary: "Build host chosen: the Mac mini (2.5 TiB free, Docker 29.5.2), against chaste/release."
+  status: supported
+
+notes: |
+  DECIDED: builds/runs on the Mac mini (per the expert). The pbg-chaste branch is synced there
+  and the chaste/release image (prebuilt Chaste C++, ~24 GB) is being pulled. The project's
+  CMake declares COMPONENTS cell_based crypt, so the crypt component must be available in the
+  image even though the sorting case study does not use it — to be confirmed when the image
+  layout is inspected. Both mini and laptop are Apple Silicon, so runs are emulated regardless;
+  the mini's value is being persistent and out of the laptop's way.

@@ -6,7 +6,13 @@ one parametrized :class:`ChasteSimulationProcess`, driving the real engine
 through the chaste/pychaste Docker image.
 """
 
-from .processes import ChasteSimulationProcess, POPULATIONS, CELL_CYCLES
+from .processes import (
+    ChasteSimulationProcess,
+    ChasteCellSortingProcess,
+    POPULATIONS,
+    CELL_CYCLES,
+    SORTING_MODELS,
+)
 
 # Registering the @composite_generator entries needs pbg_superpowers (provided
 # by the pbg ecosystem / plugin). Guard it so the core Process stays importable
@@ -16,4 +22,10 @@ try:
 except ImportError:  # pragma: no cover
     composites = None
 
-__all__ = ["ChasteSimulationProcess", "POPULATIONS", "CELL_CYCLES"]
+__all__ = [
+    "ChasteSimulationProcess",
+    "ChasteCellSortingProcess",
+    "POPULATIONS",
+    "CELL_CYCLES",
+    "SORTING_MODELS",
+]

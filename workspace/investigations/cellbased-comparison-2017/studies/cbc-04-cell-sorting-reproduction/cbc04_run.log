@@ -1,0 +1,24 @@
+=== CP : building + relaxing (t=10) + labelling ===
+skipping `process_bigraph.server.rest` (missing optional dep `fastapi`)
+skipping `pbg_superpowers.ablation` (missing optional dep `pbg_basic_processes`)
+skipping `pbg_superpowers.event_client` (missing optional dep `investigation_contracts`)
+skipping `pbg_superpowers.intervention` (missing optional dep `pbg_basic_processes`)
+skipping `pbg_superpowers.readout_migration` (missing optional dep `polars`)
+skipping `pbg_superpowers.readout_resolver` (missing optional dep `polars`)
+skipping `pbg_superpowers.readout_validation` (missing optional dep `polars`)
+skipping `pbg_superpowers.study_evaluator` (missing optional dep `polars`)
+module `pbg_emitters.parquet_emitter` not found during dynamic import
+skipping `pbg_emitters.run_reader` (missing optional dep `polars`)
+module `pbg_emitters.xarray_emitter` not found during dynamic import
+    cp: solved to t=110 in 470s | cells=400 labelled=200 random_motion=temperature frac_end=0.1241
+    cp: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_cp/
+=== OS : building + relaxing (t=10) + labelling ===
+    os: solved to t=110 in 97s | cells=400 labelled=200 random_motion=diffusion_force frac_end=0.0622
+    os: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_os/
+=== VT : building + relaxing (t=10) + labelling ===
+    vt: solved to t=110 in 356s | cells=400 labelled=200 random_motion=unavailable frac_end=0.5069
+    vt: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_vt/
+=== VM : building + relaxing (t=10) + labelling ===
+    vm: solved to t=110 in 129s | cells=400 labelled=200 random_motion=diffusion_force frac_end=0.2712
+    vm: copied .dat files under workspace/investigations/cellbased-comparison-2017/studies/cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_vm/
+=== cbc-04 pychaste baseline DONE ===

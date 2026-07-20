@@ -1,6 +1,7 @@
 """Chaste composite generators (imported for @composite_generator side effects)."""
 
 from . import matrix  # noqa: F401
+from . import sorting  # noqa: F401
 
 from .matrix import (
     build_document,
@@ -11,6 +12,14 @@ from .matrix import (
     node_stochastic,
     mesh_tyson_novak,
 )
+from .sorting import (
+    build_sorting_document,
+    cell_sorting,
+    sorting_potts,
+    sorting_overlapping_spheres,
+    sorting_vertex,
+    sorting_voronoi,
+)
 
 __all__ = [
     "build_document",
@@ -20,4 +29,10 @@ __all__ = [
     "vertex_tyson_novak",
     "node_stochastic",
     "mesh_tyson_novak",
+    "build_sorting_document",
+    "cell_sorting",
+    "sorting_potts",
+    "sorting_overlapping_spheres",
+    "sorting_vertex",
+    "sorting_voronoi",
 ]
