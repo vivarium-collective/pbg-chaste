@@ -1,5 +1,10 @@
 # pbg-chaste
 
+<!-- BEGIN dashboard -->
+> ## 📊 [**Live dashboard →**](https://vivarium-collective.github.io/pbg-chaste/dashboard/)
+> Browse every investigation & study interactively, or read the [published investigation reports](https://vivarium-collective.github.io/pbg-chaste/). Auto-published from `main` on every merge.
+<!-- END dashboard -->
+
 Process-bigraph wrapper for **[Chaste](https://github.com/Chaste/Chaste)** —
 the Cancer, Heart And Soft Tissue Environment simulator. This package exposes
 Chaste's **multi-cellular** simulation methods and **sub-cellular** cell-cycle

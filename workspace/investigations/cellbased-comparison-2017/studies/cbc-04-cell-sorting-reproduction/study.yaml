@@ -142,6 +142,11 @@ reproducibility_metrics:
     max_abs_divergence: 0.012
     verdict: match
     note: "Near-identical; adhesion-dominated, DiffusionForce noise second-order."
+    rmse: 0.0051
+    mae: 0.0038
+    pearson: 0.999
+    nrmse: 0.0103
+    area_between: 0.0038
   - observable: fractional_boundary_length
     model: cp
     tutorial_value: 0.097
@@ -149,6 +154,11 @@ reproducibility_metrics:
     max_abs_divergence: 0.066
     verdict: close
     note: "All-mainline; no substitute classes. Both engulf (below the ~0.15 optimal-engulfment line)."
+    rmse: 0.0444
+    mae: 0.0402
+    pearson: 0.956
+    nrmse: 0.0847
+    area_between: 0.0404
   - observable: fractional_boundary_length
     model: vt
     tutorial_value: 0.440
@@ -157,6 +167,11 @@ reproducibility_metrics:
     verdict: close
     note: "Both stall high (paper: VT plateaus). Achieved with NO random motion in our run (DiffusionForce
       incompatible with VT remesh, cbc-03)."
+    rmse: 0.0517
+    mae: 0.0482
+    pearson: 0.997
+    nrmse: 0.1065
+    area_between: 0.0484
   - observable: fractional_boundary_length
     model: os
     tutorial_value: 0.039
@@ -165,6 +180,11 @@ reproducibility_metrics:
     verdict: partial
     note: "Largest residual. Both sort strongly; divergence tracks the DiffusionForce-vs-RandomMotionForce
       substitution (cbc-03)."
+    rmse: 0.0375
+    mae: 0.0227
+    pearson: 0.931
+    nrmse: 0.078
+    area_between: 0.0228
   - observable: fractional_boundary_length
     model: ca
     tutorial_value: 0.231
@@ -183,6 +203,11 @@ reproducibility_metrics:
   - "Exact trajectory equality is not expected even at seed 0 (OS/VM consume the RNG differently via DiffusionForce;
     VT has no noise). The comparison is distributional in spirit."
 
+  metric_definitions: max_abs_divergence = worst pointwise gap; rmse/mae over both-defined 
+    timepoints; nrmse = rmse/range; pearson = trajectory shape correlation; area_between = 
+    time-normalized integral of |cxx-pyc|. All vs the cbc-01 C++ baseline.
+  summary: Near-perfect shape agreement (Pearson r 0.93-0.999) and low error (RMSE 0.005-0.052) 
+    across all four reachable models; VM essentially identical.
 baseline:
 - name: cp-sorting
   composite: pbg_chaste.composites.sorting.sorting_potts

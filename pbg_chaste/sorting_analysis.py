@@ -135,13 +135,61 @@ class ModelComparison:
     cxx: list[float | None]
     pychaste: list[float | None]
     abs_diff: list[float | None]
-    max_abs_diff: float | None
+    # scalar agreement metrics over the shared, both-defined timepoints
+    max_abs_diff: float | None = None   # worst pointwise gap
+    mae: float | None = None            # mean absolute error
+    rmse: float | None = None           # root-mean-square error
+    nrmse: float | None = None          # RMSE / observed range of the C++ curve
+    pearson: float | None = None        # trajectory shape correlation
+    area_between: float | None = None   # trapezoidal ∫|cxx-pyc| dt, time-normalized
+    endpoint_abs_diff: float | None = None
+    endpoint_rel_err: float | None = None
+    n_points: int = 0
     note: str = ""
+
+    def as_row(self) -> dict:
+        def f(x, nd=4):
+            return None if x is None else round(x, nd)
+        return {
+            "model": self.model,
+            "max_abs_diff": f(self.max_abs_diff),
+            "mae": f(self.mae),
+            "rmse": f(self.rmse),
+            "nrmse": f(self.nrmse),
+            "pearson": f(self.pearson, 3),
+            "area_between": f(self.area_between),
+            "endpoint_abs_diff": f(self.endpoint_abs_diff),
+            "endpoint_rel_err": f(self.endpoint_rel_err, 3),
+            "n_points": self.n_points,
+            "note": self.note,
+        }
+
+
+def _pearson(xs: list[float], ys: list[float]) -> float | None:
+    n = len(xs)
+    if n < 2:
+        return None
+    mx = sum(xs) / n
+    my = sum(ys) / n
+    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    sxx = sum((x - mx) ** 2 for x in xs)
+    syy = sum((y - my) ** 2 for y in ys)
+    if sxx <= 0 or syy <= 0:
+        return None
+    return sxy / (sxx ** 0.5 * syy ** 0.5)
 
 
 def compare(cxx: Trajectory, pychaste: Trajectory, *, tol: float = 1e-6) -> ModelComparison:
-    """Align two trajectories on shared timepoints and diff fractional length."""
+    """Align two trajectories on shared timepoints and compute agreement metrics.
+
+    Beyond the worst-case gap (max_abs_diff), reports whole-trajectory metrics a
+    reviewer actually needs: mean/RMS error, range-normalized RMSE, shape
+    correlation (Pearson), the time-normalized area between the curves, and the
+    endpoint gap in absolute and relative terms. All are over the timepoints
+    where BOTH curves are defined.
+    """
     times, a, b, diff = [], [], [], []
+    xs, ys, ts = [], [], []   # both-defined pairs for the scalar metrics
     for tt, fa in zip(cxx.times, cxx.fractional_length):
         fb = pychaste.at(tt, tol=tol)
         if fb is None and fa is None:
@@ -149,9 +197,36 @@ def compare(cxx: Trajectory, pychaste: Trajectory, *, tol: float = 1e-6) -> Mode
         times.append(tt)
         a.append(fa)
         b.append(fb)
-        diff.append(abs(fa - fb) if (fa is not None and fb is not None) else None)
+        if fa is not None and fb is not None:
+            diff.append(abs(fa - fb))
+            xs.append(fa)
+            ys.append(fb)
+            ts.append(tt)
+        else:
+            diff.append(None)
+
+    cmp = ModelComparison(model=cxx.model, times=times, cxx=a, pychaste=b, abs_diff=diff)
     real = [d for d in diff if d is not None]
-    return ModelComparison(
-        model=cxx.model, times=times, cxx=a, pychaste=b, abs_diff=diff,
-        max_abs_diff=max(real) if real else None,
-    )
+    if not real:
+        return cmp
+    n = len(xs)
+    cmp.n_points = n
+    cmp.max_abs_diff = max(real)
+    cmp.mae = sum(real) / len(real)
+    cmp.rmse = (sum((x - y) ** 2 for x, y in zip(xs, ys)) / n) ** 0.5
+    rng = max(xs) - min(xs)
+    cmp.nrmse = (cmp.rmse / rng) if rng > 0 else None
+    cmp.pearson = _pearson(xs, ys)
+    # trapezoidal area between |cxx-pyc| over time, normalized by the time span
+    if len(ts) >= 2:
+        area = 0.0
+        for i in range(1, len(ts)):
+            dt = ts[i] - ts[i - 1]
+            d0 = abs(xs[i - 1] - ys[i - 1])
+            d1 = abs(xs[i] - ys[i])
+            area += 0.5 * (d0 + d1) * dt
+        span = ts[-1] - ts[0]
+        cmp.area_between = (area / span) if span > 0 else None
+    cmp.endpoint_abs_diff = abs(xs[-1] - ys[-1])
+    cmp.endpoint_rel_err = (cmp.endpoint_abs_diff / abs(xs[-1])) if xs[-1] else None
+    return cmp
