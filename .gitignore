@@ -26,3 +26,10 @@ workspace/reports/assets/*
 
 # scratch
 _chaste_pull.log
+
+# vivarium-workbench run + report build artifacts
+workspace/investigations/*/studies/*/runs.db
+workspace/investigations/*/studies/*/sims/
+workspace/investigations/*/studies/*/out/
+reports/published/
+.codex/

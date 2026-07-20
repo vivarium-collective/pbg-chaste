@@ -82,42 +82,42 @@ executive:
     CA remains blocked: DifferentialAdhesionCaSwitchingUpdateRule is custom to the paper's
     repo, and AbstractCaSwitchingUpdateRule_2 exposes no constructor to subclass.
   decisions_needed:
-    - question: "Accept 4-of-5 model coverage (CP, OS, VT, VM) and document CA as out of reach?"
-      context: |
-        CA needs a custom PyChaste image with the paper's DifferentialAdhesionCaSwitchingUpdateRule
-        compiled in and bound — a real C++/pybind/CMake effort, plausibly larger than the rest of
-        this investigation combined. The alternative is to report CA as a binding-coverage finding
-        rather than a simulation result. Deferred until cbc-04 lands the other four.
-    - question: "Is DiffusionForce-as-RandomMotionForce acceptable as the sanctioned substitute?"
-      context: |
-        The algebra matches exactly, but only if node radii are set on every node (DiffusionForce
-        throws on radius 0, which is the default for vertex meshes) and damping is 1.0. cbc-03
-        tests this numerically against the C++ reference before cbc-04 depends on it.
+  - question: "Accept 4-of-5 model coverage (CP, OS, VT, VM) and document CA as out of reach?"
+    context: |
+      CA needs a custom PyChaste image with the paper's DifferentialAdhesionCaSwitchingUpdateRule
+      compiled in and bound — a real C++/pybind/CMake effort, plausibly larger than the rest of
+      this investigation combined. The alternative is to report CA as a binding-coverage finding
+      rather than a simulation result. Deferred until cbc-04 lands the other four.
+  - question: "Is DiffusionForce-as-RandomMotionForce acceptable as the sanctioned substitute?"
+    context: |
+      The algebra matches exactly, but only if node radii are set on every node (DiffusionForce
+      throws on radius 0, which is the default for vertex meshes) and damping is 1.0. cbc-03
+      tests this numerically against the C++ reference before cbc-04 depends on it.
 
 inputs:
   datasets: []
   references:
-    - osborne2017
+  - osborne2017
   expert_docs:
-    - name: "Osborne et al. 2017 (PLOS Comput Biol) — full text"
-      path: inputs/papers/osborne2017-cellbased-comparison.pdf
+  - name: "Osborne et al. 2017 (PLOS Comput Biol) — full text"
+    path: inputs/papers/osborne2017-cellbased-comparison.pdf
 
 proposed_inputs:
   _note: "Why this block exists — agent-suggested inputs the expert did NOT provide."
   items:
-    - id: cellbasedcomparison2017-code
-      kind: reference
-      citation: "Chaste/CellBasedComparison2017 — source code accompanying Osborne et al. 2017. https://github.com/Chaste/CellBasedComparison2017"
-      proposed_by: agent
-      proposed_at: '2026-07-16'
-      related_study: cbc-01-cxx-reference-baseline
-      rationale: |
-        The expert supplied this URL in the task prompt, so it is effectively provided —
-        recorded here rather than in inputs.references only because it is a code repo, not a
-        bibliography entry. It is the source of the ground-truth baseline and of the exact
-        per-model parameters. Promote on accept.
-      provenance: "Named directly by the expert in the originating request."
-      status: pending
+  - id: cellbasedcomparison2017-code
+    kind: reference
+    citation: "Chaste/CellBasedComparison2017 — source code accompanying Osborne et al. 2017. https://github.com/Chaste/CellBasedComparison2017"
+    proposed_by: agent
+    proposed_at: '2026-07-16'
+    related_study: cbc-01-cxx-reference-baseline
+    rationale: |
+      The expert supplied this URL in the task prompt, so it is effectively provided —
+      recorded here rather than in inputs.references only because it is a code repo, not a
+      bibliography entry. It is the source of the ground-truth baseline and of the exact
+      per-model parameters. Promote on accept.
+    provenance: "Named directly by the expert in the originating request."
+    status: pending
 
 scientific_argument:
   main_claim: |
@@ -128,19 +128,19 @@ scientific_argument:
   evidence_against: []
   key_figures: []
   caveats:
-    - "No simulations have been run yet. Every claim here is a design-time expectation."
-    - |
-      The paper's repo ships with paper parameters COMMENTED OUT and short CI values active
-      (cell sorting: t_end 11.0 in-repo vs 100 in the paper). The C++ baseline is only a
-      baseline if those blocks are restored first — a silent way to produce a wrong reference.
-    - |
-      Chaste under amd64 emulation on Apple Silicon is slow. The paper's sorting runs are
-      20x20 cells to t=100 across 5 models x 10 seeds x 9 k_pert values; the full Fig 3 sweep
-      is likely infeasible on this laptop and may need the Mac mini or a reduced sweep.
-    - |
-      The paper's own figures are NOT the reference — the authors' C++ output is. Divergence
-      between our PyChaste run and their C++ run is the measurement; divergence between either
-      and the published PNG is not interpretable.
+  - "No simulations have been run yet. Every claim here is a design-time expectation."
+  - |
+    The paper's repo ships with paper parameters COMMENTED OUT and short CI values active
+    (cell sorting: t_end 11.0 in-repo vs 100 in the paper). The C++ baseline is only a
+    baseline if those blocks are restored first — a silent way to produce a wrong reference.
+  - |
+    Chaste under amd64 emulation on Apple Silicon is slow. The paper's sorting runs are
+    20x20 cells to t=100 across 5 models x 10 seeds x 9 k_pert values; the full Fig 3 sweep
+    is likely infeasible on this laptop and may need the Mac mini or a reduced sweep.
+  - |
+    The paper's own figures are NOT the reference — the authors' C++ output is. Divergence
+    between our PyChaste run and their C++ run is the measurement; divergence between either
+    and the published PNG is not interpretable.
 
 biological_story: |
   When embryonic cells of two types are mixed, they spontaneously unmix — one type engulfing
@@ -162,10 +162,14 @@ biological_story: |
   which measures how much interface remains between unlike cells as sorting proceeds.
 
 at_a_glance:
-  - {study: cbc-01-cxx-reference-baseline, role: "Build the authors' C++ code and generate the ground-truth sorting baseline"}
-  - {study: cbc-02-onlattice-wrapper-extension, role: "Extend pbg-chaste to on-lattice populations, ghost nodes, differential adhesion and cell labels"}
-  - {study: cbc-03-random-motion-equivalence, role: "Adversarial: test whether mainline DiffusionForce really equals the paper's custom RandomMotionForce"}
-  - {study: cbc-04-cell-sorting-reproduction, role: "Reproduce Figs 2-3 across the reachable model classes and diff against cbc-01"}
+- {study: cbc-01-cxx-reference-baseline, role: "Build the authors' C++ code and generate the ground-truth
+    sorting baseline"}
+- {study: cbc-02-onlattice-wrapper-extension, role: "Extend pbg-chaste to on-lattice populations, ghost
+    nodes, differential adhesion and cell labels"}
+- {study: cbc-03-random-motion-equivalence, role: "Adversarial: test whether mainline DiffusionForce really
+    equals the paper's custom RandomMotionForce"}
+- {study: cbc-04-cell-sorting-reproduction, role: "Reproduce Figs 2-3 across the reachable model classes
+    and diff against cbc-01"}
 
 how_to_read: |
   Read cbc-01 as the reference and cbc-04 as the result; cbc-02 is plumbing and cbc-03 is the
@@ -174,50 +178,69 @@ how_to_read: |
   reduces to CP only — that is the single biggest risk on the board.
 
 glossary:
-  - {term: "CA", definition: "Cellular automaton — one cell per lattice site; movement by division-driven shoving and Metropolis swaps."}
-  - {term: "CP", definition: "Cellular Potts — a cell is a set of lattice sites; evolves by Metropolis spin copies minimising a Hamiltonian."}
-  - {term: "OS", definition: "Overlapping spheres — cells are particles with radii, interacting by a spring force within a cutoff."}
-  - {term: "VT", definition: "Voronoi tessellation — cell shape is the Voronoi region of its centre; neighbours from the Delaunay dual. Requires ghost nodes."}
-  - {term: "VM", definition: "Vertex model — a cell is a polygon whose vertices move under an energy balance."}
-  - {term: "Fractional boundary length", definition: "Length of interface between unlike cells / total interface length. The paper's sorting measure; 1 = fully mixed, 0 = fully sorted. Column 1 / column 2 of heterotypicboundary.dat."}
-  - {term: "k_pert", definition: "Multiplier on the baseline noise level (temperature T for CA/CP, perturbation magnitude xi for OS/VT/VM). Swept 1e-2..1e2 in Fig 3."}
-  - {term: "Ghost nodes", definition: "Non-cell nodes surrounding a VT tissue that keep Voronoi regions finite and suppress spurious long Delaunay edges."}
-  - {term: "Trampoline", definition: "pybind11's mechanism for letting C++ virtual calls dispatch into a Python override. Present but non-functional for Chaste forces in this image."}
+- {term: "CA", definition: "Cellular automaton — one cell per lattice site; movement by division-driven
+    shoving and Metropolis swaps."}
+- {term: "CP", definition: "Cellular Potts — a cell is a set of lattice sites; evolves by Metropolis spin
+    copies minimising a Hamiltonian."}
+- {term: "OS", definition: "Overlapping spheres — cells are particles with radii, interacting by a spring
+    force within a cutoff."}
+- {term: "VT", definition: "Voronoi tessellation — cell shape is the Voronoi region of its centre; neighbours
+    from the Delaunay dual. Requires ghost nodes."}
+- {term: "VM", definition: "Vertex model — a cell is a polygon whose vertices move under an energy balance."}
+- {term: "Fractional boundary length", definition: "Length of interface between unlike cells / total interface
+    length. The paper's sorting measure; 1 = fully mixed, 0 = fully sorted. Column 1 / column 2 of heterotypicboundary.dat."}
+- {term: "k_pert", definition: "Multiplier on the baseline noise level (temperature T for CA/CP, perturbation
+    magnitude xi for OS/VT/VM). Swept 1e-2..1e2 in Fig 3."}
+- {term: "Ghost nodes", definition: "Non-cell nodes surrounding a VT tissue that keep Voronoi regions
+    finite and suppress spurious long Delaunay edges."}
+- {term: "Trampoline", definition: "pybind11's mechanism for letting C++ virtual calls dispatch into a
+    Python override. Present but non-functional for Chaste forces in this image."}
 
 guidelines:
   literature_anchors:
-    - "Osborne et al. 2017, PLOS Comput Biol 13(2):e1005387 — Tables 1 & 2 hold every parameter for the sorting case study."
+  - "Osborne et al. 2017, PLOS Comput Biol 13(2):e1005387 — Tables 1 & 2 hold every parameter for the
+    sorting case study."
   parameter_catalog:
-    - "Shared (Table 1): dt = 0.01 h (CA/CP), 0.005 h (OS/VT/VM); mu = 50.0 (OS/VT); k_C = 5 (OS); l_r = 0.1 CD (VM)."
-    - "Sorting (Table 2): L_x = L_y = 20 CD; t_end = 100 h; mu_het = 0.1 (OS/VT); r_max = 2.5 (OS); T = 0.1 (CA), 0.2 (CP); xi = 0.05 (OS), 0.1 (VT/VM); k_pert in [1e-2, 1e2]."
-    - "From the authors' code, NOT the paper: OS cutoff 2.5 + RandomMotionForce 0.05; VT 20 ghost layers + RandomMotionForce 0.1; VM NagaiHonda deformation 50, membrane 1.0, adhesion 1.0/2.0/1.0, boundary 10.0/20.0 + RandomMotionForce 0.1; CP temperature 0.2, volume constraint (16, 0.1), surface-area constraint (16, 0.01)."
+  - "Shared (Table 1): dt = 0.01 h (CA/CP), 0.005 h (OS/VT/VM); mu = 50.0 (OS/VT); k_C = 5 (OS); l_r =
+    0.1 CD (VM)."
+  - "Sorting (Table 2): L_x = L_y = 20 CD; t_end = 100 h; mu_het = 0.1 (OS/VT); r_max = 2.5 (OS); T =
+    0.1 (CA), 0.2 (CP); xi = 0.05 (OS), 0.1 (VT/VM); k_pert in [1e-2, 1e2]."
+  - "From the authors' code, NOT the paper: OS cutoff 2.5 + RandomMotionForce 0.05; VT 20 ghost layers
+    + RandomMotionForce 0.1; VM NagaiHonda deformation 50, membrane 1.0, adhesion 1.0/2.0/1.0, boundary
+    10.0/20.0 + RandomMotionForce 0.1; CP temperature 0.2, volume constraint (16, 0.1), surface-area constraint
+    (16, 0.01)."
   calibration_targets:
-    - "Fractional boundary length vs time, per model, at k_pert = 1 (the black curves of Fig 3, left) — matched against cbc-01's C++ output, not against the published figure."
+  - "Fractional boundary length vs time, per model, at k_pert = 1 (the black curves of Fig 3, left) —
+    matched against cbc-01's C++ output, not against the published figure."
 
 studies:
-  - cbc-01-cxx-reference-baseline
-  - cbc-02-onlattice-wrapper-extension
-  - cbc-03-random-motion-equivalence
-  - cbc-04-cell-sorting-reproduction
+- cbc-01-cxx-reference-baseline
+- cbc-02-onlattice-wrapper-extension
+- cbc-03-random-motion-equivalence
+- cbc-04-cell-sorting-reproduction
 
 expert_docs:
-  - name: "Osborne et al. 2017 (PLOS Comput Biol) — full text"
-    path: inputs/papers/osborne2017-cellbased-comparison.pdf
+- name: "Osborne et al. 2017 (PLOS Comput Biol) — full text"
+  path: inputs/papers/osborne2017-cellbased-comparison.pdf
 
 competing_frameworks:
-  - name: "Compare against the published figures instead of regenerated C++ output"
-    relation: |
-      Rejected. The paper's figures are rasterised summaries of 10-seed means; reading curves off
-      them cannot separate a genuine wrapper bug from digitisation error or seed variation. The
-      authors' code is available, so the stronger reference is achievable and was chosen.
-  - name: "Reimplement the five model classes directly rather than driving Chaste"
-    relation: |
-      Rejected, and it would answer a different question. The paper's entire point is that all five
-      models share one framework; a reimplementation would reintroduce exactly the cross-framework
-      artifacts Chaste exists to eliminate. pbg-chaste's contract is to drive the real engine.
+- name: "Compare against the published figures instead of regenerated C++ output"
+  relation: |
+    Rejected. The paper's figures are rasterised summaries of 10-seed means; reading curves off
+    them cannot separate a genuine wrapper bug from digitisation error or seed variation. The
+    authors' code is available, so the stronger reference is achievable and was chosen.
+- name: "Reimplement the five model classes directly rather than driving Chaste"
+  relation: |
+    Rejected, and it would answer a different question. The paper's entire point is that all five
+    models share one framework; a reimplementation would reintroduce exactly the cross-framework
+    artifacts Chaste exists to eliminate. pbg-chaste's contract is to drive the real engine.
 
 acceptance_criteria:
-  - {study: cbc-01-cxx-reference-baseline, behavior: cxx-baseline-reproduces-paper-figure-2-qualitatively}
-  - {study: cbc-02-onlattice-wrapper-extension, behavior: onlattice-populations-run-and-emit-heterotypic-boundary}
-  - {study: cbc-03-random-motion-equivalence, behavior: diffusion-force-matches-random-motion-force-trajectory}
-  - {study: cbc-04-cell-sorting-reproduction, behavior: fractional-length-matches-cxx-baseline-within-seed-spread}
+- study: cbc-01-cxx-reference-baseline
+  behavior: cxx-fractional-length-declines
+- study: cbc-02-onlattice-wrapper-extension
+  behavior: ghost-nodes-excluded-from-cell-counts
+- study: cbc-03-random-motion-equivalence
+  behavior: os-with-diffusion-force-sorts
+- study: cbc-04-cell-sorting-reproduction
+  behavior: fractional-length-declines-like-cxx

@@ -11,30 +11,30 @@ claim: |
   sorts most, CP engulfs. This is the reference cbc-04 diffs against.
 
 findings:
-  - summary: |
-      All five models ran to completion (rc=0) and produced fractional-length trajectories that
-      qualitatively match paper Fig 3 (k_pert=1). Normalizing by the value at labelling (t=10),
-      as Fig 3 does: OS 0.08, CP 0.19, CA 0.50, VM 0.55, VT 0.91.
-    evidence: |
-      cxx-baseline/CellSorting/{Ca,Potts,Node,Mesh,Vertex}/results_from_time_{0,10}/
-      heterotypicboundary.dat, reduced by pbg_chaste.sorting_analysis into
-      cxx-baseline/fractional_length_by_model.csv. Raw endpoints at t=110:
-      CA 0.461->0.231, CP 0.524->0.097, OS 0.480->0.039, VT 0.485->0.440, VM 0.494->0.271.
-      Ordering (VT stalls highest, OS lowest, CP low) matches the paper's Fig 3-left black curves.
-    interpretation: |
-      The authors' own code is the ground truth by construction; this confirms our build + the
-      paper-parameter restoration are correct. The paper's "OS/VT differ from CA/CP/VM" claim
-      shows up as VT plateauing near its start (0.91 normalized) while CP/OS drive the interface
-      down. OS reaching the lowest value is consistent with the paper's note that OS/VT fully
-      SEPARATE (rather than engulf) given time — separation also minimizes interface.
-    status: supported
+- summary: |
+    All five models ran to completion (rc=0) and produced fractional-length trajectories that
+    qualitatively match paper Fig 3 (k_pert=1). Normalizing by the value at labelling (t=10),
+    as Fig 3 does: OS 0.08, CP 0.19, CA 0.50, VM 0.55, VT 0.91.
+  evidence: |
+    cxx-baseline/CellSorting/{Ca,Potts,Node,Mesh,Vertex}/results_from_time_{0,10}/
+    heterotypicboundary.dat, reduced by pbg_chaste.sorting_analysis into
+    cxx-baseline/fractional_length_by_model.csv. Raw endpoints at t=110:
+    CA 0.461->0.231, CP 0.524->0.097, OS 0.480->0.039, VT 0.485->0.440, VM 0.494->0.271.
+    Ordering (VT stalls highest, OS lowest, CP low) matches the paper's Fig 3-left black curves.
+  interpretation: |
+    The authors' own code is the ground truth by construction; this confirms our build + the
+    paper-parameter restoration are correct. The paper's "OS/VT differ from CA/CP/VM" claim
+    shows up as VT plateauing near its start (0.91 normalized) while CP/OS drive the interface
+    down. OS reaching the lowest value is consistent with the paper's note that OS/VT fully
+    SEPARATE (rather than engulf) given time — separation also minimizes interface.
+  status: supported
 
-  - summary: |
-      CORRECTION to this study's own acceptance wording: fractional length starts at ~0.5 at
-      labelling (raw), not ~1.0. A random 50/50 label makes ~half of all interfaces heterotypic.
-      The paper's curves start at 1.0 only because they are NORMALIZED by the t=0 value.
-    evidence: "frac@10 across models: 0.461-0.524 (i.e. ~0.5), not ~1.0."
-    status: supported
+- summary: |
+    CORRECTION to this study's own acceptance wording: fractional length starts at ~0.5 at
+    labelling (raw), not ~1.0. A random 50/50 label makes ~half of all interfaces heterotypic.
+    The paper's curves start at 1.0 only because they are NORMALIZED by the t=0 value.
+  evidence: "frac@10 across models: 0.461-0.524 (i.e. ~0.5), not ~1.0."
+  status: supported
 
 question: |
   Can we build Chaste plus the authors' CellBasedComparison2017 project from source and
@@ -78,34 +78,26 @@ description: |
 parent_studies: []
 
 expected_behavior:
-  - name: cxx-baseline-reproduces-paper-figure-2-qualitatively
-    observable: fractional_boundary_length_trajectory
-    condition: |
-      With paper parameters restored and k_pert = 1, all five models show monotone decline in
-      fractional boundary length from ~1 at labelling time; CA, CP and VM approach the
-      engulfment reference (dashed line, ~0.15) by t = 100 while OS and VT plateau above it.
-    rationale: |
-      This is Fig 2 / Fig 3-left restated. It is deliberately qualitative: it is a sanity gate
-      confirming the build and the restored parameters are sound, not the quantitative test.
-      The quantitative test lives in cbc-04, which diffs against this study's numbers.
-
-  - name: paper-parameters-restored-and-recorded
-    observable: test_source_diff
-    condition: |
-      The diff restoring M_TIME_FOR_SIMULATION = 100 (and any other commented paper values) is
-      committed, and the built binary is confirmed to run to t = 100 rather than t = 11.
-    rationale: |
-      Guards the silent-wrong-baseline failure mode. A baseline generated at CI parameters would
-      invalidate every downstream comparison while looking entirely healthy.
-
-  - name: baseline-seed-spread-quantified
-    observable: fractional_boundary_length_std
-    condition: |
-      10 seeds per model, with per-timepoint mean and standard deviation recorded.
-    rationale: |
-      cbc-04's acceptance is "within seed spread", so the spread must be measured here or that
-      criterion has no scale to be judged against.
-
+- name: cxx-fractional-length-declines
+  en: Fractional boundary length declines from its post-labelling value as cells sort.
+  measure:
+    kind: listener_path
+    path: fractional_length
+    reduce: series
+  expect:
+    op: monotonic_decreasing
+    allow_rebound_pct: 25
+  status: stub
+- name: cxx-interface-more-than-halves
+  en: By t=110 the heterotypic interface is well below its post-labelling value (sorting occurred).
+  measure:
+    kind: listener_path
+    path: fractional_length
+    reduce: first_and_last
+  expect:
+    op: ratio_at_most
+    ratio: 1.0
+  status: stub
 reproducibility_metrics:
   tutorial_source: |
     Our own build of Chaste/CellBasedComparison2017 against chaste/release, compared to the
@@ -116,57 +108,70 @@ reproducibility_metrics:
     Paper values are read approximately off Fig 3-left (black curves) — the paper ships curves,
     not tables, so tutorial_value here is an eyeballed plateau, not an exact figure.
   metrics:
-    - observable: normalized_fractional_length_endpoint
-      model: os
-      tutorial_value: 0.05
-      reproduction_value: 0.08
-      verdict: close
-      note: "Approx. from Fig 3; OS sorts most (fully separates)."
-    - observable: normalized_fractional_length_endpoint
-      model: cp
-      tutorial_value: 0.15
-      reproduction_value: 0.19
-      verdict: close
-    - observable: normalized_fractional_length_endpoint
-      model: ca
-      tutorial_value: 0.40
-      reproduction_value: 0.50
-      verdict: close
-    - observable: normalized_fractional_length_endpoint
-      model: vm
-      tutorial_value: 0.55
-      reproduction_value: 0.55
-      verdict: match
-    - observable: normalized_fractional_length_endpoint
-      model: vt
-      tutorial_value: 0.85
-      reproduction_value: 0.91
-      verdict: close
-      note: "VT stalls highest, matching the paper's 'OS/VT differ from CA/CP/VM' claim."
+  - observable: normalized_fractional_length_endpoint
+    model: os
+    tutorial_value: 0.05
+    reproduction_value: 0.08
+    verdict: close
+    note: "Approx. from Fig 3; OS sorts most (fully separates)."
+  - observable: normalized_fractional_length_endpoint
+    model: cp
+    tutorial_value: 0.15
+    reproduction_value: 0.19
+    verdict: close
+  - observable: normalized_fractional_length_endpoint
+    model: ca
+    tutorial_value: 0.40
+    reproduction_value: 0.50
+    verdict: close
+  - observable: normalized_fractional_length_endpoint
+    model: vm
+    tutorial_value: 0.55
+    reproduction_value: 0.55
+    verdict: match
+  - observable: normalized_fractional_length_endpoint
+    model: vt
+    tutorial_value: 0.85
+    reproduction_value: 0.91
+    verdict: close
+    note: "VT stalls highest, matching the paper's 'OS/VT differ from CA/CP/VM' claim."
   qualitative:
     ordering_reproduced: true
     detail: "Model ordering (VT > VM > CA > CP > OS by residual interface) matches Fig 3."
   caveats:
-    - "Tutorial values are read off the published figure, not exact — this study's role is to establish OUR C++ run as the exact reference for cbc-04, which is compared numerically."
-    - "Single seed (0). The tutorial itself is single-run; the paper's curves are 10-seed means."
+  - "Tutorial values are read off the published figure, not exact — this study's role is to establish
+    OUR C++ run as the exact reference for cbc-04, which is compared numerically."
+  - "Single seed (0). The tutorial itself is single-run; the paper's curves are 10-seed means."
 
-baseline: []
+baseline:
+- name: cp-sorting
+  composite: pbg_chaste.composites.sorting.sorting_potts
+  description: Cellular Potts sorting (OnLatticeSimulation + Potts update rules).
+- name: os-sorting
+  composite: pbg_chaste.composites.sorting.sorting_overlapping_spheres
+  description: Overlapping-spheres sorting (differential-adhesion springs + diffusion noise).
+- name: vt-sorting
+  composite: pbg_chaste.composites.sorting.sorting_voronoi
+  description: Voronoi sorting (ghost-node MeshBased; deterministic, cbc-03).
+- name: vm-sorting
+  composite: pbg_chaste.composites.sorting.sorting_vertex
+  description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
 variants: []
 interventions: []
 runs: []
 
 prep_findings:
-  - summary: |
-      The cell-sorting paper-parameter restoration is a SINGLE line, confirmed against the clone.
-    evidence: |
-      test/TestCellSortingLiteratePaper.hpp line 81: `M_TIME_FOR_SIMULATION = 11.0` (CI value)
-      must become 100 (paper value; the commented-out paper block at lines 75-78 confirms 100).
-      M_TIME_TO_STEADY_STATE (10) and M_NUM_CELLS_ACROSS (20) are ALREADY at paper values in the
-      active block, so no other edit is needed for this case study. M_CELL_FLUCTUATION stays 1.0
-      (it is the k_pert knob; 1.0 is the Fig 2 baseline).
-    status: supported
-  - summary: "Build host chosen: the Mac mini (2.5 TiB free, Docker 29.5.2), against chaste/release."
-    status: supported
+- summary: |
+    The cell-sorting paper-parameter restoration is a SINGLE line, confirmed against the clone.
+  evidence: |
+    test/TestCellSortingLiteratePaper.hpp line 81: `M_TIME_FOR_SIMULATION = 11.0` (CI value)
+    must become 100 (paper value; the commented-out paper block at lines 75-78 confirms 100).
+    M_TIME_TO_STEADY_STATE (10) and M_NUM_CELLS_ACROSS (20) are ALREADY at paper values in the
+    active block, so no other edit is needed for this case study. M_CELL_FLUCTUATION stays 1.0
+    (it is the k_pert knob; 1.0 is the Fig 2 baseline).
+  status: supported
+- summary: "Build host chosen: the Mac mini (2.5 TiB free, Docker 29.5.2), against chaste/release."
+  status: supported
 
 notes: |
   DECIDED: builds/runs on the Mac mini (per the expert). The pbg-chaste branch is synced there

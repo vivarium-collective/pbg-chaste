@@ -57,36 +57,53 @@ description: |
 parent_studies: []
 
 expected_behavior:
-  - name: onlattice-populations-run-and-emit-heterotypic-boundary
-    observable: heterotypic_boundary_length
-    condition: |
-      A Potts (CP) simulation runs under OnLatticeSimulation with the three update rules attached
-      (volume constraint, surface-area constraint, differential adhesion) and returns non-zero
-      heterotypic boundary length and total shared edge length for a two-label population.
-    rationale: |
-      CP is the strictest test of the new dispatch seam — it is the only model needing
-      OnLatticeSimulation AND update rules AND labels — and it is the one model in this study
-      requiring no substitute classes at all, so a failure here is unambiguously a wrapper bug.
-
-  - name: ghost-nodes-excluded-from-cell-counts
-    observable: num_cells
-    condition: |
-      A VT population built with 20 ghost layers over a 20x20 tissue reports 400 real cells, not
-      400 plus the ghost count.
-    rationale: |
-      Directly targets the extractor's assumption that every location index is a real cell.
-      Failure here would inflate every VT observable while looking superficially plausible.
-
-  - name: cell-labelling-splits-population-in-half
-    observable: labelled_cell_fraction
-    condition: |
-      After the paper's RandomlyLabelCells(..., 0.5) step, the labelled fraction is 0.5 +/- the
-      binomial spread expected at n = 400, in all four populations.
-    rationale: |
-      Differential adhesion is meaningless without two types; this asserts the labelling step
-      exists and is population-independent before any sorting result rests on it.
-
-baseline: []
+- name: onlattice-emits-heterotypic-boundary
+  en: A Potts run under OnLatticeSimulation with the three update rules emits a non-zero total 
+    shared edge length.
+  measure:
+    kind: listener_path
+    path: total_length
+    reduce: median
+  expect:
+    op: in_range
+    low: 0.0001
+    high: 1000000.0
+  status: stub
+- name: ghost-nodes-excluded-from-cell-counts
+  en: A 20x20 Voronoi tissue with ghost layers reports exactly 400 real cells (ghosts excluded).
+  measure:
+    kind: listener_path
+    path: num_cells
+    reduce: median
+  expect:
+    op: in_range
+    low: 400
+    high: 400
+  status: stub
+- name: cell-labelling-splits-population-in-half
+  en: About half the real cells carry a CellLabel after the labelling step.
+  measure:
+    kind: listener_path
+    path: num_labelled
+    reduce: median
+  expect:
+    op: in_range
+    low: 170
+    high: 230
+  status: stub
+baseline:
+- name: cp-sorting
+  composite: pbg_chaste.composites.sorting.sorting_potts
+  description: Cellular Potts sorting (OnLatticeSimulation + Potts update rules).
+- name: os-sorting
+  composite: pbg_chaste.composites.sorting.sorting_overlapping_spheres
+  description: Overlapping-spheres sorting (differential-adhesion springs + diffusion noise).
+- name: vt-sorting
+  composite: pbg_chaste.composites.sorting.sorting_voronoi
+  description: Voronoi sorting (ghost-node MeshBased; deterministic, cbc-03).
+- name: vm-sorting
+  composite: pbg_chaste.composites.sorting.sorting_vertex
+  description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
 variants: []
 interventions: []
 runs: []
@@ -98,112 +115,112 @@ reproducibility_metrics:
     TestCellSortingLiteratePaper.hpp?
   comparison: "Tutorial config vs our wrapper, at the paper's 20x20 (measured in cbc-04 runs)."
   metrics:
-    - observable: real_cell_count
-      model: all
-      tutorial_value: 400            # 20x20
-      reproduction_value: 400
-      verdict: match
-      note: "Ghost nodes excluded correctly (VT); the tutorial's assertion is GetNumRealCells()==400."
-    - observable: labelled_cell_count
-      model: all
-      tutorial_value: 200            # RandomlyLabelCells(..., 0.5)
-      reproduction_value: 200
-      verdict: match
-    - observable: metric_writer
-      model: all
-      tutorial_value: "heterotypicboundary.dat (5 cols)"
-      reproduction_value: "heterotypicboundary.dat (5 cols)"
-      verdict: match
-      note: "Same mainline writer attached; same column format. Fractional-length numbers compared in cbc-04."
-    - observable: model_coverage
-      model: all
-      tutorial_value: "5 (CA,CP,OS,VT,VM)"
-      reproduction_value: "4 (CP,OS,VT,VM)"
-      verdict: partial
-      note: "CA blocked (custom Ca switching rule); reported with evidence, not silently dropped."
+  - observable: real_cell_count
+    model: all
+    tutorial_value: 400              # 20x20
+    reproduction_value: 400
+    verdict: match
+    note: "Ghost nodes excluded correctly (VT); the tutorial's assertion is GetNumRealCells()==400."
+  - observable: labelled_cell_count
+    model: all
+    tutorial_value: 200              # RandomlyLabelCells(..., 0.5)
+    reproduction_value: 200
+    verdict: match
+  - observable: metric_writer
+    model: all
+    tutorial_value: "heterotypicboundary.dat (5 cols)"
+    reproduction_value: "heterotypicboundary.dat (5 cols)"
+    verdict: match
+    note: "Same mainline writer attached; same column format. Fractional-length numbers compared in cbc-04."
+  - observable: model_coverage
+    model: all
+    tutorial_value: "5 (CA,CP,OS,VT,VM)"
+    reproduction_value: "4 (CP,OS,VT,VM)"
+    verdict: partial
+    note: "CA blocked (custom Ca switching rule); reported with evidence, not silently dropped."
 
 findings:
-  - summary: |
-      All four reachable models (CP, OS, VT, VM) construct with the paper's exact
-      differential-adhesion configuration and emit heterotypicboundary.dat — verified end-to-end
-      by spikes/spike_sorting.py at 5x5 cells, t=0.2, before any wrapper code was written.
-    evidence: |
-      spikes/raw/*-heterotypicboundary.dat, produced by spikes/spike_sorting.py against
-      chaste/pychaste:latest. All five columns present: time, heterotypic_length, total_length,
-      num_heterotypic_pairs, total_pairs. CP ran under OnLatticeSimulation with all three update
-      rules attached; OS/VT/VM under OffLatticeSimulation with their respective differential
-      -adhesion forces. No custom classes, no trampolines.
-    status: supported
+- summary: |
+    All four reachable models (CP, OS, VT, VM) construct with the paper's exact
+    differential-adhesion configuration and emit heterotypicboundary.dat — verified end-to-end
+    by spikes/spike_sorting.py at 5x5 cells, t=0.2, before any wrapper code was written.
+  evidence: |
+    spikes/raw/*-heterotypicboundary.dat, produced by spikes/spike_sorting.py against
+    chaste/pychaste:latest. All five columns present: time, heterotypic_length, total_length,
+    num_heterotypic_pairs, total_pairs. CP ran under OnLatticeSimulation with all three update
+    rules attached; OS/VT/VM under OffLatticeSimulation with their respective differential
+    -adhesion forces. No custom classes, no trampolines.
+  status: supported
 
-  - summary: |
-      OS fractional boundary length is numerically DEGENERATE on the pristine honeycomb lattice,
-      and the paper's 10h relaxation phase is what conditions it.
-    evidence: |
-      probes/probe9.py: NodesOnlyMesh default node radius is exactly 0.5 and honeycomb spacing is
-      exactly 1.0, so neighbouring cells are exactly TANGENT (2r - d = 0.0000). The writer derives
-      an OS "shared edge" from Heron's formula on the two radii and their separation, so tangency
-      gives a zero-length chord. Observed: spikes/raw/os-heterotypicboundary.dat reads
-      "0.2  2.95028e-07  5.68982e-07  14  27" — lengths at float-noise scale, and the ratio
-      2.95e-07/5.69e-07 = 0.5185 is EXACTLY the pair-count ratio 14/27, i.e. the length weighting
-      contributes nothing.
-    interpretation: |
-      Not a bug, and not something to "fix" — it is the paper's own OS configuration. It means the
-      OS metric only becomes meaningful once the spring force compresses cells into genuine overlap,
-      which is precisely what the authors' 10h pre-labelling relaxation achieves. Consequence for
-      cbc-04: OS must not be sampled before relaxation, and any OS fractional length that exactly
-      equals the pair-count ratio should be treated as a signal that the tissue has not compressed,
-      not as a physical result.
-    status: supported
+- summary: |
+    OS fractional boundary length is numerically DEGENERATE on the pristine honeycomb lattice,
+    and the paper's 10h relaxation phase is what conditions it.
+  evidence: |
+    probes/probe9.py: NodesOnlyMesh default node radius is exactly 0.5 and honeycomb spacing is
+    exactly 1.0, so neighbouring cells are exactly TANGENT (2r - d = 0.0000). The writer derives
+    an OS "shared edge" from Heron's formula on the two radii and their separation, so tangency
+    gives a zero-length chord. Observed: spikes/raw/os-heterotypicboundary.dat reads
+    "0.2  2.95028e-07  5.68982e-07  14  27" — lengths at float-noise scale, and the ratio
+    2.95e-07/5.69e-07 = 0.5185 is EXACTLY the pair-count ratio 14/27, i.e. the length weighting
+    contributes nothing.
+  interpretation: |
+    Not a bug, and not something to "fix" — it is the paper's own OS configuration. It means the
+    OS metric only becomes meaningful once the spring force compresses cells into genuine overlap,
+    which is precisely what the authors' 10h pre-labelling relaxation achieves. Consequence for
+    cbc-04: OS must not be sampled before relaxation, and any OS fractional length that exactly
+    equals the pair-count ratio should be treated as a signal that the tissue has not compressed,
+    not as a physical result.
+  status: supported
 
-  - summary: |
-      Implemented: ChasteCellSortingProcess + _sorting_server.py drive all four models
-      through the real engine. 11/11 tests pass (Docker-gated), and the cell_sorting
-      composite runs end-to-end through process-bigraph, emitting fractional_length via
-      RAMEmitter.
-    evidence: |
-      pbg_chaste/_sorting_server.py, pbg_chaste/processes.py::ChasteCellSortingProcess,
-      tests/test_cell_sorting.py (11 passed). End-to-end composite: CP 5x5 emitted
-      fractional_length=0.379, random_motion="temperature", num_cells=25 through the
-      RAMEmitter history. CP AC (onlattice + boundary), VT AC (16 real cells, ghosts
-      excluded) and labelling AC (exact half across all four models) all pass on the
-      real engine.
-    status: supported
+- summary: |
+    Implemented: ChasteCellSortingProcess + _sorting_server.py drive all four models
+    through the real engine. 11/11 tests pass (Docker-gated), and the cell_sorting
+    composite runs end-to-end through process-bigraph, emitting fractional_length via
+    RAMEmitter.
+  evidence: |
+    pbg_chaste/_sorting_server.py, pbg_chaste/processes.py::ChasteCellSortingProcess,
+    tests/test_cell_sorting.py (11 passed). End-to-end composite: CP 5x5 emitted
+    fractional_length=0.379, random_motion="temperature", num_cells=25 through the
+    RAMEmitter history. CP AC (onlattice + boundary), VT AC (16 real cells, ghosts
+    excluded) and labelling AC (exact half across all four models) all pass on the
+    real engine.
+  status: supported
 
-  - summary: |
-      REFUTATION (feeds cbc-03): mainline DiffusionForce cannot substitute for the paper's
-      RandomMotionForce in the VT model. MeshBasedCellPopulation re-triangulates every
-      timestep, creating fresh nodes with NO radius attribute; DiffusionForce divides its
-      force by node radius and throws on radius 0, whereas RandomMotionForce has no radius
-      division and is immune.
-    evidence: |
-      probes/probe_vt3.py: after a single plain solve, all 64 VT mesh nodes report
-      missing/zero radius despite being set to 0.5 before the solve — the remesh discards
-      them. Setting radii once (probe_vt2.py, via pop.rGetMesh() which IS the same object)
-      does not survive. OS and VM are unaffected (NodesOnlyMesh keeps radii; the vertex
-      mesh's ReMesh preserves node attributes), so the incompatibility is specific to the
-      mesh-based Delaunay population.
-    interpretation: |
-      This is a per-model, mechanical refutation of cbc-03's equivalence hypothesis, reached
-      before any trajectory was measured. VT therefore runs here WITHOUT random motion, flagged
-      random_motion="unavailable" in the emitted state (never silent). cbc-03 now owns a concrete
-      obstruction, and cbc-04's VT arm is blocked on noise until a substitute is found (candidates:
-      a custom PyChaste image binding RandomMotionForce, or a fixed-radius force variant).
-    status: supported
-    links: [cbc-03-random-motion-equivalence]
+- summary: |
+    REFUTATION (feeds cbc-03): mainline DiffusionForce cannot substitute for the paper's
+    RandomMotionForce in the VT model. MeshBasedCellPopulation re-triangulates every
+    timestep, creating fresh nodes with NO radius attribute; DiffusionForce divides its
+    force by node radius and throws on radius 0, whereas RandomMotionForce has no radius
+    division and is immune.
+  evidence: |
+    probes/probe_vt3.py: after a single plain solve, all 64 VT mesh nodes report
+    missing/zero radius despite being set to 0.5 before the solve — the remesh discards
+    them. Setting radii once (probe_vt2.py, via pop.rGetMesh() which IS the same object)
+    does not survive. OS and VM are unaffected (NodesOnlyMesh keeps radii; the vertex
+    mesh's ReMesh preserves node attributes), so the incompatibility is specific to the
+    mesh-based Delaunay population.
+  interpretation: |
+    This is a per-model, mechanical refutation of cbc-03's equivalence hypothesis, reached
+    before any trajectory was measured. VT therefore runs here WITHOUT random motion, flagged
+    random_motion="unavailable" in the emitted state (never silent). cbc-03 now owns a concrete
+    obstruction, and cbc-04's VT arm is blocked on noise until a substitute is found (candidates:
+    a custom PyChaste image binding RandomMotionForce, or a fixed-radius force variant).
+  status: supported
+  links: [cbc-03-random-motion-equivalence]
 
-  - summary: |
-      DiffusionForce has no scaling setter; scaling is derived as C*T/viscosity with
-      C = 2.636845e-8 (measured). To hit scaling = xi*radius (so per-node D = xi, matching
-      RandomMotionForce), set viscosity=1 and AbsoluteTemperature = xi*radius/C.
-    evidence: "probes/probe_fix.py; pbg_chaste/_sorting_server.py::DIFFUSION_SCALING_C."
-    status: supported
+- summary: |
+    DiffusionForce has no scaling setter; scaling is derived as C*T/viscosity with
+    C = 2.636845e-8 (measured). To hit scaling = xi*radius (so per-node D = xi, matching
+    RandomMotionForce), set viscosity=1 and AbsoluteTemperature = xi*radius/C.
+  evidence: "probes/probe_fix.py; pbg_chaste/_sorting_server.py::DIFFUSION_SCALING_C."
+  status: supported
 
-  - summary: |
-      CellLabel has no Python read-back (HasCellProperty and the property collection are
-      unbound), so per-cell labels are tracked by the stable cell id set at labelling time.
-      The label still drives the C++ physics; only the reported labels[] array uses the id set.
-    evidence: "probes/probe_lab.py (no readback path), probe_id.py (GetCellId unique & stable)."
-    status: supported
+- summary: |
+    CellLabel has no Python read-back (HasCellProperty and the property collection are
+    unbound), so per-cell labels are tracked by the stable cell id set at labelling time.
+    The label still drives the C++ physics; only the reported labels[] array uses the id set.
+  evidence: "probes/probe_lab.py (no readback path), probe_id.py (GetCellId unique & stable)."
+  status: supported
 
 api_notes: |
   Learned from probes 7-9 and the round-3 probes; these correct guesses that the C++ source

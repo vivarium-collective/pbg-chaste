@@ -23,6 +23,7 @@ def build_sorting_document(
     relax_time=10.0,
     interval=5.0,
     seed=0,
+    ghost_layers=20,
 ):
     """Composite: ChasteCellSortingProcess + stores + emitter.
 
@@ -43,6 +44,7 @@ def build_sorting_document(
                 "height": int(height),
                 "k_pert": float(k_pert),
                 "relax_time": float(relax_time),
+                "ghost_layers": int(ghost_layers),
                 "seed": int(seed),
             },
             "interval": float(interval),
@@ -112,10 +114,10 @@ _SORT_PARAMS = {
     parameters=_SORT_PARAMS,
 )
 def cell_sorting(core=None, *, model="cp", width=20, height=20, k_pert=1.0,
-                 relax_time=10.0, interval=5.0, seed=0):
+                 relax_time=10.0, interval=5.0, seed=0, ghost_layers=20, **_):
     return build_sorting_document(
         model, width=width, height=height, k_pert=k_pert,
-        relax_time=relax_time, interval=interval, seed=seed,
+        relax_time=relax_time, interval=interval, seed=seed, ghost_layers=ghost_layers,
     )
 
 
@@ -125,33 +127,39 @@ def cell_sorting(core=None, *, model="cp", width=20, height=20, k_pert=1.0,
     name="sorting_potts",
     description="Cell sorting — cellular Potts (CP): OnLatticeSimulation with "
     "volume/surface/differential-adhesion update rules.",
-    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "interval")},
+    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "relax_time", "interval", "seed")},
 )
-def sorting_potts(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0):
+def sorting_potts(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0,
+           relax_time=10.0, seed=0, ghost_layers=20, **_):
     return build_sorting_document("cp", width=width, height=height,
-                                  k_pert=k_pert, interval=interval)
+                                  k_pert=k_pert, interval=interval,
+                                  relax_time=relax_time, seed=seed, ghost_layers=ghost_layers)
 
 
 @composite_generator(
     name="sorting_overlapping_spheres",
     description="Cell sorting — overlapping spheres (OS): NodeBasedCellPopulation "
     "with differential-adhesion springs + diffusion-force random motion.",
-    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "interval")},
+    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "relax_time", "interval", "seed")},
 )
-def sorting_overlapping_spheres(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0):
+def sorting_overlapping_spheres(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0,
+           relax_time=10.0, seed=0, ghost_layers=20, **_):
     return build_sorting_document("os", width=width, height=height,
-                                  k_pert=k_pert, interval=interval)
+                                  k_pert=k_pert, interval=interval,
+                                  relax_time=relax_time, seed=seed, ghost_layers=ghost_layers)
 
 
 @composite_generator(
     name="sorting_vertex",
     description="Cell sorting — vertex model (VM): VertexBasedCellPopulation with "
     "Nagai-Honda differential adhesion + diffusion-force random motion.",
-    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "interval")},
+    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "relax_time", "interval", "seed")},
 )
-def sorting_vertex(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0):
+def sorting_vertex(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0,
+           relax_time=10.0, seed=0, ghost_layers=20, **_):
     return build_sorting_document("vm", width=width, height=height,
-                                  k_pert=k_pert, interval=interval)
+                                  k_pert=k_pert, interval=interval,
+                                  relax_time=relax_time, seed=seed, ghost_layers=ghost_layers)
 
 
 @composite_generator(
@@ -159,8 +167,10 @@ def sorting_vertex(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0):
     description="Cell sorting — Voronoi tessellation (VT): "
     "MeshBasedCellPopulationWithGhostNodes. NOTE: runs without random motion — "
     "DiffusionForce is incompatible with VT's per-step remesh (see study cbc-03).",
-    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "interval")},
+    parameters={k: _SORT_PARAMS[k] for k in ("width", "height", "k_pert", "relax_time", "interval", "seed")},
 )
-def sorting_voronoi(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0):
+def sorting_voronoi(core=None, *, width=20, height=20, k_pert=1.0, interval=5.0,
+           relax_time=10.0, seed=0, ghost_layers=20, **_):
     return build_sorting_document("vt", width=width, height=height,
-                                  k_pert=k_pert, interval=interval)
+                                  k_pert=k_pert, interval=interval,
+                                  relax_time=relax_time, seed=seed, ghost_layers=ghost_layers)

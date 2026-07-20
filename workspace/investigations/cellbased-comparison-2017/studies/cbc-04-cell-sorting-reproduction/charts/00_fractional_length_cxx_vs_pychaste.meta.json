@@ -1,0 +1,5 @@
+{
+  "title": "Fractional boundary length — PyChaste vs C++ tutorial",
+  "caption": "Cell-sorting trajectories (normalized to labelling, t=10) for all five model classes. Solid = authors' C++ code (cbc-01), dashed = pbg-chaste reproduction (cbc-04). CA shown for C++ only (unsupported in PyChaste).",
+  "interpretation": "Four of five models reproduce the tutorial within run-to-run noise: VM max|diff| 0.012, CP 0.066, VT 0.070, OS 0.147. VT stalls highest; OS/CP sort most."
+}
