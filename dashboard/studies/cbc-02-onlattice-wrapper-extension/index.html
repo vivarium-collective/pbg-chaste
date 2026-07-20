@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Study: cbc-02-onlattice-wrapper-extension</title>
+<link rel="stylesheet" href="/pbg-chaste/dashboard/assets/style.css">
+</head>
+<body>
+<main class="study-page">
+<header class="study-header">
+  <h1 class="study-title">
+    <span class="study-num-chip" style="font-size:0.5em; font-weight:700; color:#64748b; background:#f1f5f9; padding:3px 9px; border-radius:9999px; vertical-align:middle; margin-right:8px">cbc-02</span><span class="study-name" id="study-name" data-slug="cbc-02-onlattice-wrapper-extension" title="cbc-02-onlattice-wrapper-extension">On-lattice + differential-adhesion wrapper extension</span>
+    
+    
+    
+    <span class="status-pill status-ran" title="Headline status derived from the highest-precedence multi-axis field (or legacy `status` as fallback).">ran</span>
+    
+    
+    
+    
+  </h1>
+</header>
+
+
+
+
+
+<div id="readiness-panel" data-slug="cbc-02-onlattice-wrapper-extension"></div>
+
+
+
+
+
+
+
+
+
+
+
+<style>
+.spine-summary{margin:8px 0 0 0;border:1px solid #cbd5e1;border-left-width:5px;border-bottom:none;border-radius:6px 6px 0 0;background:#f8fafc;font-size:0.9em}
+.spine-summary:empty{display:none}
+.spine-summary-head{padding:7px 14px 4px 14px;font-size:0.78em;text-transform:uppercase;letter-spacing:0.05em;color:#475569;font-weight:700}
+.spine-row{display:flex;align-items:baseline;gap:10px;padding:4px 14px;border-top:1px solid #eef2f6}
+.spine-key{min-width:92px;color:#475569;font-weight:600;font-size:0.85em;text-transform:uppercase;letter-spacing:0.03em}
+.spine-val{flex:1;color:#1e293b}
+.spine-jump{white-space:nowrap}
+.spine-jump a,.spine-val a{color:#3b82f6;text-decoration:none}
+.spine-jump a:hover,.spine-val a:hover{text-decoration:underline}
+.spine-label{font-size:0.8em;color:#64748b;font-weight:500}
+.spine-chip-warn{display:inline-block;font-size:0.82em;font-weight:600;padding:1px 8px;border-radius:9999px;background:#fffbeb;border:1px solid #f59e0b;color:#92400e;margin-left:6px}
+.spine-div{font-weight:600;color:#92400e}
+</style>
+<div id="spine-summary" class="spine-summary" data-slug="cbc-02-onlattice-wrapper-extension"></div>
+
+<nav class="study-tabs" aria-label="Study sections">
+  <div class="study-pillars">
+    <button class="study-pillar active" data-pillar="understand" onclick="_setStudyPillar('understand')">Overview</button>
+    <button class="study-pillar"        data-pillar="inquire"    onclick="_setStudyPillar('inquire')">Hypotheses</button>
+    <button class="study-pillar"        data-pillar="compose"    onclick="_setStudyPillar('compose')">Model</button>
+    <button class="study-pillar"        data-pillar="simulate"   onclick="_setStudyPillar('simulate')">Simulations</button>
+    <button class="study-pillar"        data-pillar="visualize"  onclick="_setStudyPillar('visualize')">Results</button>
+    <button class="study-pillar"        data-pillar="data"       onclick="_setStudyPillar('data')">Exports</button>
+  </div>
+  <div class="study-subnav" id="study-subnav">
+    <button class="study-tab active" data-kind="overview" data-pillar="understand" onclick="_setStudyTab('overview')">Overview</button>
+    <button class="study-tab"        data-kind="tests"        data-pillar="inquire"  onclick="_setStudyTab('tests')">Tests</button>
+    <button class="study-tab"        data-kind="conclusions"  data-pillar="inquire"  onclick="_setStudyTab('conclusions')">Conclusions</button>
+    <button class="study-tab" data-kind="compose" data-pillar="compose" onclick="_setStudyTab('compose')">Model</button>
+    <button class="study-tab" data-kind="simulate" data-pillar="simulate" onclick="_setStudyTab('simulate')">Simulations</button>
+    <button class="study-tab" data-kind="visualize" data-pillar="visualize" onclick="_setStudyTab('visualize')">Results</button>
+    <button class="study-tab" data-kind="data" data-pillar="data" onclick="_setStudyTab('data')">Exports</button>
+  </div>
+</nav>
+<style>
+.phase-pill{display:inline-block;font-size:0.78em;padding:2px 10px;border-radius:9999px;margin-right:6px;font-weight:500;background:#e0e7ff;color:#3730a3}
+.phase-design   { background:#e0e7ff; color:#3730a3 }
+.phase-build    { background:#fef3c7; color:#92400e }
+.phase-simulate { background:#dbeafe; color:#1e40af }
+.phase-evaluate { background:#fce7f3; color:#9d174d }
+.phase-decide   { background:#d1fae5; color:#065f46 }
+.classification-pill{display:inline-block;font-size:0.7em;padding:1px 8px;border-radius:9999px;margin-right:4px;font-weight:500}
+.classification-primary    { background:#fee2e2; color:#991b1b }
+.classification-supporting { background:#dbeafe; color:#1e40af }
+.classification-diagnostic { background:#fef3c7; color:#92400e }
+.classification-regression { background:#e5e7eb; color:#374151 }
+.sim-status-pill{display:inline-block;font-size:0.72em;padding:1px 8px;border-radius:9999px;margin-left:4px}
+.sim-status-ready  { background:#d1fae5; color:#065f46 }
+.sim-status-gated  { background:#fef3c7; color:#92400e }
+.sim-status-running{ background:#dbeafe; color:#1e40af }
+.sim-status-ran    { background:#d1fae5; color:#065f46 }
+.purpose-callout{margin-bottom:10px;padding:10px 14px;border-radius:4px;line-height:1.55}
+.purpose-callout strong{margin-right:6px}
+.followup-list{display:flex;flex-direction:column;gap:10px}
+.followup-card{padding:10px 14px;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:4px;background:#f8fafc;font-size:0.93em}
+.followup-card.followup-kind-existing{border-left-color:#3b82f6;background:#eff6ff}
+.followup-card.followup-kind-infrastructure_fix{border-left-color:#dc2626;background:#fef2f2}
+.followup-card.followup-kind-calibration_task{border-left-color:#f59e0b;background:#fefce8}
+.followup-card.followup-kind-expert_question{border-left-color:#a855f7;background:#faf5ff}
+.followup-card.followup-kind-new{border-left-color:#10b981;background:#f0fdf4}
+.followup-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.followup-kind{font-size:0.7em;text-transform:uppercase;letter-spacing:0.05em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#475569}
+.followup-effort{font-size:0.7em;padding:1px 8px;border-radius:9999px;background:#e0e7ff;color:#3730a3;font-family:ui-monospace,monospace}
+.followup-status{font-size:0.7em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#475569}
+.followup-status.status-blocked{background:#fef3c7;color:#92400e}
+.followup-status.status-done{background:#d1fae5;color:#065f46}
+.followup-title{flex:1;font-size:1em}
+.followup-why,.followup-unblocks,.followup-acceptance,.followup-hypothesis{margin:4px 0 0 0;font-size:0.92em;line-height:1.45}
+.followup-hypothesis{padding:6px 10px;background:#fff;border-radius:3px;border:1px dashed #cbd5e1}
+.btn-seed-followup{font-size:0.85em;padding:4px 12px;border:1px solid #3b82f6;background:#fff;color:#3b82f6;border-radius:4px;cursor:pointer}
+.btn-seed-followup:hover{background:#3b82f6;color:#fff}
+.charts-panel{margin-top:18px;display:flex;flex-direction:column;gap:18px}
+.chart-card{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px 12px 12px}
+/* SVGs scale to fit their card; preserves aspect ratio so a 1400×484
+   chart shrinks instead of overflowing horizontally + clipping. */
+.chart-card svg,.chart-card img.chart-img{display:block;width:100%;max-width:100%;height:auto}
+.chart-caption{font-size:0.83em;color:#475569;margin-top:4px;line-height:1.4}
+/* findings */
+.findings-section{padding:14px 16px;background:#fafbff;border:1px solid #c7d2fe;border-radius:8px}
+.finding-card{padding:12px 14px;margin:10px 0;border:1px solid #e2e8f0;border-left:5px solid #6366f1;border-radius:6px;background:#fff}
+.finding-card.finding-status-confirms{border-left-color:#10b981}
+.finding-card.finding-status-partial{border-left-color:#f59e0b}
+.finding-card.finding-status-contradicts{border-left-color:#dc2626}
+.finding-card.finding-status-novel{border-left-color:#8b5cf6}
+.finding-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.finding-status-glyph{font-size:1.2em;width:24px;text-align:center}
+.finding-status-confirms .finding-status-glyph{color:#10b981}
+.finding-status-partial .finding-status-glyph{color:#f59e0b}
+.finding-status-contradicts .finding-status-glyph{color:#dc2626}
+.finding-status-novel .finding-status-glyph{color:#8b5cf6}
+.finding-id{font-family:ui-monospace,monospace;font-size:0.78em;color:#475569;background:#f1f5f9;padding:1px 6px;border-radius:3px}
+.finding-kind{font-size:0.7em;text-transform:uppercase;letter-spacing:0.05em;padding:1px 8px;border-radius:9999px;background:#e0e7ff;color:#3730a3;font-weight:500}
+.finding-status-text{font-size:0.78em;color:#64748b;margin-left:auto;font-style:italic}
+.finding-statement{font-size:1em;line-height:1.5;font-weight:500;color:#0f172a;margin:4px 0 8px 0}
+.finding-evidence,.finding-expected{font-size:0.86em;color:#475569;padding:6px 10px;background:#f8fafc;border-left:3px solid #94a3b8;border-radius:3px;margin:6px 0;line-height:1.5}
+.finding-exp-summary{font-size:0.9em;color:#475569;padding:6px 10px;background:#fafbff;border-left:3px solid #6366f1;border-radius:3px;margin:6px 0;line-height:1.5}
+.finding-explanation{font-size:0.92em;color:#1e293b;margin:6px 0;line-height:1.5}
+.finding-explanation em{color:#475569;font-style:normal;font-weight:600}
+.finding-expert{margin:6px 0;padding:6px 10px;background:#fafafa;border:1px solid #e2e8f0;border-radius:4px}
+.finding-expert summary{cursor:pointer;font-size:0.85em;color:#475569;font-weight:500}
+.finding-expert-quote{border-left:3px solid #6366f1;margin:6px 0 4px 0;padding:6px 10px;background:#fafbff;font-style:italic;color:#1e1b4b;font-size:0.92em;line-height:1.5}
+.finding-expert-note{font-size:0.88em;color:#475569;margin-top:4px;font-style:italic}
+.finding-next{padding:6px 10px;background:#f0fdf4;border-left:3px solid #10b981;border-radius:3px;font-size:0.9em;margin-top:8px;line-height:1.5}
+.finding-next strong{color:#065f46}
+/* discovery implications */
+.di-group{margin:14px 0}
+.di-group h3{margin:0 0 6px 0;font-size:0.95em}
+.di-uncertainties{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0}
+.di-unc{flex:1;min-width:220px}
+.di-unc h4{margin:0 0 4px 0;font-size:0.88em}
+.di-unc-resolved h4{color:#065f46}
+.di-unc-remaining h4{color:#92400e}
+.di-unc ul{margin:0 0 0 18px;padding:0;font-size:0.9em;line-height:1.45}
+.di-card{padding:10px 14px;margin:8px 0;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:4px;background:#f8fafc;font-size:0.92em}
+.di-card-stmt{font-size:0.98em;line-height:1.5}
+.di-card-why{margin:4px 0 0 0;color:#475569;line-height:1.45}
+.di-card-line{margin:4px 0 0 0;font-size:0.88em;color:#475569;line-height:1.4}
+.di-lbl{color:#475569;font-weight:600;font-size:0.85em}
+.di-mech-card{border-left-color:#a855f7;background:#faf5ff}
+.di-mech-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.di-update-chip{font-size:0.7em;text-transform:uppercase;letter-spacing:0.04em;padding:1px 8px;border-radius:9999px;background:#e0e7ff;color:#3730a3}
+.di-conf-change{font-size:0.78em;color:#475569;font-family:ui-monospace,monospace}
+.di-approval-badge{font-size:0.68em;text-transform:uppercase;letter-spacing:0.04em;padding:1px 8px;border-radius:9999px;background:#fef3c7;color:#92400e}
+.di-fup-card{border-left-color:#10b981;background:#f0fdf4}
+.di-gain-high{background:#d1fae5;color:#065f46}
+.di-gain-medium{background:#fef3c7;color:#92400e}
+.di-gain-low{background:#e5e7eb;color:#374151}
+.di-chip{font-size:0.7em;padding:1px 8px;border-radius:9999px;background:#e2e8f0;color:#475569}
+</style>
+
+<section class="study-tab-panel active" data-kind="overview" id="panel-overview">
+  <div class="study-overview">
+
+    
+    <h2 class="overview-label">Summary</h2>
+
+    
+    
+    <div class="overview-section narrative-card" data-narrative-card="report">
+      <h2 class="overview-label">📋 Report — executive summary
+        <span class="narrative-card-hint">(top-of-page panel for reviewers)</span>
+      </h2>
+      <p class="muted" style="margin:0 0 10px 0;font-size:0.85em">Author the reviewer-facing notes below; Verdict and main insight are computed from the gate evaluator and findings.</p>
+      <div class="narrative-grid">
+        
+        <label class="narrative-row">
+          <span class="narrative-label">Verdict</span>
+          <span class="narrative-input verdict-badge-computed"
+                title="Computed from the gate evaluator (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">passed</span>
+          <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
+        </label>
+        <label class="narrative-row">
+          <span class="narrative-label">Confidence</span>
+          <select class="narrative-input" data-narrative-path="report.confidence">
+            <option value="">(unset)</option>
+            <option value="high" >high</option>
+            <option value="medium" >medium</option>
+            <option value="low" >low</option>
+          </select>
+        </label>
+        <label class="narrative-row">
+          <span class="narrative-label">Evidence quality</span>
+          <input type="text" class="narrative-input" data-narrative-path="report.evidence_quality"
+                 value=""
+                 placeholder="e.g. calibrated | literature-matched | aspirational | regression-only">
+        </label>
+        <div class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Main insight</span>
+          <span class="narrative-input" style="background:transparent;border:0;color:#334155">(computed from findings in the report)
+            <span class="muted small">— computed from findings</span></span>
+        </div>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Caveat</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="report.caveat"
+                    placeholder="One sentence: the headline limitation a reviewer needs to know."></textarea>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Conclusion</span>
+          <textarea class="narrative-input narrative-textarea" rows="3"
+                    data-narrative-path="report.conclusion"
+                    placeholder="Multi-sentence: what the runs + tests demonstrated."></textarea>
+        </label>
+      </div>
+    </div>
+
+    
+    <div class="overview-section biology-summary-callout">
+      <h2 class="biology-glance-label">Biology — what this study is about
+        <span class="narrative-card-hint">(optional override — derived from findings when blank)</span>
+      </h2>
+      <textarea class="biology-prose narrative-input narrative-textarea" rows="4"
+                data-narrative-path="biological_summary"
+                placeholder="Multi-paragraph plain-English mechanism narrative — the 'textbook write-up' a non-modeler would read."></textarea>
+      
+      <div class="biology-derived-preview muted small" style="margin-top:6px;padding:8px 12px;background:#f8fafc;border-left:3px solid #cbd5e1;border-radius:4px">
+        <em>Derived from findings (shown in the report when no override is set):</em>
+        <p style="margin:4px 0 0">All four reachable models (CP, OS, VT, VM) construct with the paper&#39;s exact
+differential-adhesion configuration and emit heterotypicboundary.dat — verified end-to-end
+by spikes/spike_sorting.py at 5x5 cells, t=0.2, before any wrapper code was written.
+</p><p style="margin:4px 0 0">OS fractional boundary length is numerically DEGENERATE on the pristine honeycomb lattice,
+and the paper&#39;s 10h relaxation phase is what conditions it.
+</p><p style="margin:4px 0 0">Implemented: ChasteCellSortingProcess + _sorting_server.py drive all four models
+through the real engine. 11/11 tests pass (Docker-gated), and the cell_sorting
+composite runs end-to-end through process-bigraph, emitting fractional_length via
+RAMEmitter.
+</p><p style="margin:4px 0 0">REFUTATION (feeds cbc-03): mainline DiffusionForce cannot substitute for the paper&#39;s
+RandomMotionForce in the VT model. MeshBasedCellPopulation re-triangulates every
+timestep, creating fresh nodes with NO radius attribute; DiffusionForce divides its
+force by node radius and throws on radius 0, whereas RandomMotionForce has no radius
+division and is immune.
+</p><p style="margin:4px 0 0">DiffusionForce has no scaling setter; scaling is derived as C*T/viscosity with
+C = 2.636845e-8 (measured). To hit scaling = xi*radius (so per-node D = xi, matching
+RandomMotionForce), set viscosity=1 and AbsoluteTemperature = xi*radius/C.
+</p><p style="margin:4px 0 0">CellLabel has no Python read-back (HasCellProperty and the property collection are
+unbound), so per-cell labels are tracked by the stable cell id set at labelling time.
+The label still drives the C++ physics; only the reported labels[] array uses the id set.
+</p>
+      </div>
+      
+    </div>
+
+    
+    <h2 class="overview-label">Question &amp; approach</h2>
+
+    
+    
+    <div class="overview-section">
+      <div id="question-text" class="overview-prose" data-editable="true"
+           data-field="question"
+           data-placeholder="(what research question is this study asking?)">Can pbg-chaste&#39;s ChasteSimulationProcess be extended to cover the four model classes the
+paper&#39;s sorting study needs and PyChaste can reach — Potts (CP), overlapping spheres (OS),
+Voronoi-with-ghost-nodes (VT) and vertex (VM) — emitting fractional boundary length as a
+first-class observable?
+</div>
+    </div>
+    <div class="overview-section">
+      <div id="hypothesis-text" class="overview-prose" data-editable="true"
+           data-field="hypothesis"
+           data-placeholder="(predicted outcome)">All four are reachable with mainline PyChaste classes alone. The probe confirmed every
+required population, force, update rule, mesh generator and the HeterotypicBoundaryLengthWriter
+are bound; the work is wrapper architecture, not missing bindings.
+</div>
+    </div>
+    <div class="overview-section">
+      <div id="objective-text" class="overview-prose" data-editable="true" data-field="objective">Extend the wrapper to dispatch OnLatticeSimulation alongside OffLatticeSimulation, add Potts
+and ghost-node populations, two-cell-type labelling, the differential-adhesion forces and
+update rules, and surface heterotypic boundary length on an output port.
+</div>
+    </div>
+    
+
+    
+    <h2 class="overview-label">Findings &amp; open debts</h2>
+
+    
+    <div class="overview-section findings-section">
+      <h2 class="overview-label">🔬 Findings — what this study taught us</h2>
+      <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">
+        Each card states a finding, links the evidence (run + test + value), shows the literature/expert comparison, and marks whether v2ecoli's behavior <em>confirms</em>, <em>contradicts</em>, <em>partially</em> agrees with, or is <em>novel</em> vs the reference.
+      </p>
+      
+      
+      
+      <div class="finding-card finding-kind-other finding-status-supported">
+        <div class="finding-header">
+          <span class="finding-status-glyph">◆</span>
+          <span class="finding-id"></span>
+          <span class="finding-kind">other</span>
+          <span class="finding-status-text">supported literature</span>
+        </div>
+        <div class="finding-statement"></div>
+        
+        
+        
+        
+        <div class="finding-evidence">
+          
+          
+          
+          
+          
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      </div>
+      
+      
+      
+      <div class="finding-card finding-kind-other finding-status-supported">
+        <div class="finding-header">
+          <span class="finding-status-glyph">◆</span>
+          <span class="finding-id"></span>
+          <span class="finding-kind">other</span>
+          <span class="finding-status-text">supported literature</span>
+        </div>
+        <div class="finding-statement"></div>
+        
+        
+        
+        
+        <div class="finding-evidence">
+          
+          
+          
+          
+          
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      </div>
+      
+      
+      
+      <div class="finding-card finding-kind-other finding-status-supported">
+        <div class="finding-header">
+          <span class="finding-status-glyph">◆</span>
+          <span class="finding-id"></span>
+          <span class="finding-kind">other</span>
+          <span class="finding-status-text">supported literature</span>
+        </div>
+        <div class="finding-statement"></div>
+        
+        
+        
+        
+        <div class="finding-evidence">
+          
+          
+          
+          
+          
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      </div>
+      
+      
+      
+      <div class="finding-card finding-kind-other finding-status-supported">
+        <div class="finding-header">
+          <span class="finding-status-glyph">◆</span>
+          <span class="finding-id"></span>
+          <span class="finding-kind">other</span>
+          <span class="finding-status-text">supported literature</span>
+        </div>
+        <div class="finding-statement"></div>
+        
+        
+        
+        
+        <div class="finding-evidence">
+          
+          
+          
+          
+          
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      </div>
+      
+      
+      
+      <div class="finding-card finding-kind-other finding-status-supported">
+        <div class="finding-header">
+          <span class="finding-status-glyph">◆</span>
+          <span class="finding-id"></span>
+          <span class="finding-kind">other</span>
+          <span class="finding-status-text">supported literature</span>
+        </div>
+        <div class="finding-statement"></div>
+        
+        
+        
+        
+        <div class="finding-evidence">
+          
+          
+          
+          
+          
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      </div>
+      
+      
+      
+      <div class="finding-card finding-kind-other finding-status-supported">
+        <div class="finding-header">
+          <span class="finding-status-glyph">◆</span>
+          <span class="finding-id"></span>
+          <span class="finding-kind">other</span>
+          <span class="finding-status-text">supported literature</span>
+        </div>
+        <div class="finding-statement"></div>
+        
+        
+        
+        
+        <div class="finding-evidence">
+          
+          
+          
+          
+          
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      </div>
+      
+    </div>
+    
+
+    
+    
+    <div class="overview-section" id="epistemic-debts-panel">
+      <h2 class="overview-label">🧾 Open epistemic debts
+        <span class="narrative-card-hint">(negative knowledge — what this study has not yet established)</span>
+      </h2>
+      <p class="muted" style="margin:0 0 8px 0;font-size:0.85em">
+        Untested claims, absent controls, uncalibrated metrics, un-excluded
+        alternatives, unexplored regions, and stale visuals — harvested from the
+        rigor scorecard + freshness signals.
+      </p>
+      <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+        
+        
+        
+        
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-top:1px solid #f1f5f9">
+          <span style="padding:1px 8px;border-radius:9999px;background:#fee2e2;color:#991b1b;font-weight:600;font-size:0.72em;white-space:nowrap">high</span>
+          <div>
+            <strong style="color:#1e293b">alternative-not-excluded</strong>
+            <code style="font-size:0.82em">alternatives</code>
+            <div style="color:#475569;font-size:0.9em;margin-top:1px">no alternative hypotheses declared</div>
+          </div>
+        </div>
+        
+        
+        
+        
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-top:1px solid #f1f5f9">
+          <span style="padding:1px 8px;border-radius:9999px;background:#fee2e2;color:#991b1b;font-weight:600;font-size:0.72em;white-space:nowrap">high</span>
+          <div>
+            <strong style="color:#1e293b">claim-untested</strong>
+            <code style="font-size:0.82em">falsifiability</code>
+            <div style="color:#475569;font-size:0.9em;margin-top:1px">criteria read as tailored-to-succeed — add a falsifiability note (study.falsifiability)</div>
+          </div>
+        </div>
+        
+        
+        
+        
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-top:1px solid #f1f5f9">
+          <span style="padding:1px 8px;border-radius:9999px;background:#fee2e2;color:#991b1b;font-weight:600;font-size:0.72em;white-space:nowrap">high</span>
+          <div>
+            <strong style="color:#1e293b">control-absent</strong>
+            <code style="font-size:0.82em">negative_control</code>
+            <div style="color:#475569;font-size:0.9em;margin-top:1px">no controls — declare a system that SHOULD fail the criteria (externally-maintained / -supplied) plus a clearly-passing / borderline case so the metric is calibrated, not just asserted</div>
+          </div>
+        </div>
+        
+        
+        
+        
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-top:1px solid #f1f5f9">
+          <span style="padding:1px 8px;border-radius:9999px;background:#fef9c3;color:#854d0e;font-weight:600;font-size:0.72em;white-space:nowrap">medium</span>
+          <div>
+            <strong style="color:#1e293b">claim-untested</strong>
+            <code style="font-size:0.82em">replication</code>
+            <div style="color:#475569;font-size:0.9em;margin-top:1px">only 2 replicates — add seeds for a robustness claim</div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+
+    
+    <details class="overview-section">
+      <summary class="overview-label">Plan &amp; provenance</summary>
+
+      
+
+      
+
+      
+      
+      <div class="overview-section">
+        <h2 class="overview-label">Behavioral tests</h2>
+        
+        
+        
+        
+        
+        <p style="margin:0">
+          <strong>3</strong> tests defined
+          <a onclick="_setStudyTab('tests')" style="cursor:pointer;color:#3b82f6;text-decoration:underline;margin-left:6px">View on Tests tab →</a>
+        </p>
+      </div>
+      
+
+      
+
+      
+
+      
+      
+
+      
+      
+
+      <div class="overview-section">
+        <h3 class="overview-label">Status</h3>
+        <select id="status-select" data-field="status" class="overview-status-select">
+          <option value="planned"     >planned</option>
+          <option value="draft"       >draft</option>
+          <option value="in-progress" >in-progress</option>
+          <option value="running"     >running</option>
+          <option value="ran"         selected>ran</option>
+          <option value="completed"   >completed</option>
+          <option value="complete"    >complete</option>
+          <option value="archived"    >archived</option>
+        </select>
+        
+      </div>
+
+      <div class="study-counts-strip">
+        <div class="count-cell">
+          <strong>0</strong>
+          <span class="count-label">variants</span>
+        </div>
+        <div class="count-cell">
+          <strong>0</strong>
+          <span class="count-label">readouts</span>
+        </div>
+        <div class="count-cell">
+          <strong>0</strong>
+          <span class="count-label">requirements</span>
+        </div>
+        <div class="count-cell">
+          <strong>2</strong>
+          <span class="count-label">runs</span>
+        </div>
+      </div>
+
+    </details>
+
+    
+    <div id="feedback-tracked-panel"></div>
+
+  </div>
+</section>
+
+
+
+<section class="study-tab-panel" data-kind="compose" id="panel-compose" hidden>
+  <h2 class="overview-label" style="margin-bottom:8px">Model composition</h2>
+  
+  
+  
+
+  
+  
+  <div class="overview-section" id="model-section">
+    <h3>Model <span class="muted" style="font-size:0.85em;font-weight:normal">— the composite(s) this study runs</span></h3>
+    <p class="muted" style="font-size:0.88em">Every study runs at least one composite. Click a composite to open it in the bigraph-loom explorer — live: configure &amp; run; published bundle: read-only wiring view.</p>
+    
+    <div class="cond-block">
+      <div class="cond-block-title">
+        cp-sorting
+        
+        <button type="button" class="action-btn" style="margin-left:8px;font-size:0.82em"
+                onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_potts')">🧬 sorting.sorting_potts — configure & run ↗</button>
+        
+      </div>
+      
+      <div class="muted" style="font-size:0.88em;margin-top:2px">default parameters</div>
+      
+    </div>
+    
+    <div class="cond-block">
+      <div class="cond-block-title">
+        os-sorting
+        
+        <button type="button" class="action-btn" style="margin-left:8px;font-size:0.82em"
+                onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_overlapping_spheres')">🧬 sorting.sorting_overlapping_spheres — configure & run ↗</button>
+        
+      </div>
+      
+      <div class="muted" style="font-size:0.88em;margin-top:2px">default parameters</div>
+      
+    </div>
+    
+    <div class="cond-block">
+      <div class="cond-block-title">
+        vt-sorting
+        
+        <button type="button" class="action-btn" style="margin-left:8px;font-size:0.82em"
+                onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_voronoi')">🧬 sorting.sorting_voronoi — configure & run ↗</button>
+        
+      </div>
+      
+      <div class="muted" style="font-size:0.88em;margin-top:2px">default parameters</div>
+      
+    </div>
+    
+    <div class="cond-block">
+      <div class="cond-block-title">
+        vm-sorting
+        
+        <button type="button" class="action-btn" style="margin-left:8px;font-size:0.82em"
+                onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_vertex')">🧬 sorting.sorting_vertex — configure & run ↗</button>
+        
+      </div>
+      
+      <div class="muted" style="font-size:0.88em;margin-top:2px">default parameters</div>
+      
+    </div>
+    
+  </div>
+  
+
+  
+  
+
+  
+
+  
+  
+  
+  <div class="baseline-list">
+    
+    <article class="baseline-entry" data-baseline-name="cp-sorting">
+      <header class="baseline-entry-header">
+        <h3 class="baseline-entry-name">cp-sorting</h3>
+        <code class="baseline-entry-fqn">pbg_chaste.composites.sorting.sorting_potts</code>
+      </header>
+      
+      <div class="baseline-entry-actions">
+        <button class="btn-run-baseline" data-baseline-name="cp-sorting">Run</button>
+        <button class="btn-baseline-remove" data-baseline-name="cp-sorting">Remove</button>
+      </div>
+    </article>
+    
+    <article class="baseline-entry" data-baseline-name="os-sorting">
+      <header class="baseline-entry-header">
+        <h3 class="baseline-entry-name">os-sorting</h3>
+        <code class="baseline-entry-fqn">pbg_chaste.composites.sorting.sorting_overlapping_spheres</code>
+      </header>
+      
+      <div class="baseline-entry-actions">
+        <button class="btn-run-baseline" data-baseline-name="os-sorting">Run</button>
+        <button class="btn-baseline-remove" data-baseline-name="os-sorting">Remove</button>
+      </div>
+    </article>
+    
+    <article class="baseline-entry" data-baseline-name="vt-sorting">
+      <header class="baseline-entry-header">
+        <h3 class="baseline-entry-name">vt-sorting</h3>
+        <code class="baseline-entry-fqn">pbg_chaste.composites.sorting.sorting_voronoi</code>
+      </header>
+      
+      <div class="baseline-entry-actions">
+        <button class="btn-run-baseline" data-baseline-name="vt-sorting">Run</button>
+        <button class="btn-baseline-remove" data-baseline-name="vt-sorting">Remove</button>
+      </div>
+    </article>
+    
+    <article class="baseline-entry" data-baseline-name="vm-sorting">
+      <header class="baseline-entry-header">
+        <h3 class="baseline-entry-name">vm-sorting</h3>
+        <code class="baseline-entry-fqn">pbg_chaste.composites.sorting.sorting_vertex</code>
+      </header>
+      
+      <div class="baseline-entry-actions">
+        <button class="btn-run-baseline" data-baseline-name="vm-sorting">Run</button>
+        <button class="btn-baseline-remove" data-baseline-name="vm-sorting">Remove</button>
+      </div>
+    </article>
+    
+  </div>
+
+  <details class="baseline-add-form">
+    <summary class="btn-baseline-add">+ Add composite</summary>
+    <form id="baseline-add-form" onsubmit="return _submitBaselineAdd(event)">
+      <label>Name (short, unique): <input name="name" required pattern="[a-zA-Z0-9_-]+"></label>
+      <label>Composite ID: <input name="composite" required placeholder="pkg.composites.foo"></label>
+      <label>Params (JSON, optional): <textarea name="params" placeholder="{}"></textarea></label>
+      <button type="submit">Add</button>
+    </form>
+  </details>
+  <div class="variants-list">
+    
+    <p class="empty-message">No variants yet. Add one to perturb a baseline composite's parameters.</p>
+    
+  </div>
+
+  <details class="variant-add-form-wrapper">
+    <summary class="btn-variant-new">+ New variant</summary>
+    <form id="variant-new-form" onsubmit="return _submitVariantAdd(event)">
+      <label>Name: <input name="name" required pattern="[a-zA-Z0-9_-]+"></label>
+      <label>Base composite:
+        <select name="base_composite" required onchange="_onBaseCompositeChange(this)">
+          <option value="">— pick a baseline composite —</option>
+          
+          <option value="cp-sorting" data-composite-id="pbg_chaste.composites.sorting.sorting_potts">cp-sorting (pbg_chaste.composites.sorting.sorting_potts)</option>
+          
+          <option value="os-sorting" data-composite-id="pbg_chaste.composites.sorting.sorting_overlapping_spheres">os-sorting (pbg_chaste.composites.sorting.sorting_overlapping_spheres)</option>
+          
+          <option value="vt-sorting" data-composite-id="pbg_chaste.composites.sorting.sorting_voronoi">vt-sorting (pbg_chaste.composites.sorting.sorting_voronoi)</option>
+          
+          <option value="vm-sorting" data-composite-id="pbg_chaste.composites.sorting.sorting_vertex">vm-sorting (pbg_chaste.composites.sorting.sorting_vertex)</option>
+          
+        </select>
+      </label>
+      <div id="variant-new-params" class="param-form">
+        <p class="muted">Pick a base composite to see its parameters.</p>
+      </div>
+      <button type="submit">Save variant</button>
+    </form>
+  </details>
+
+  <!-- Hidden edit form, populated dynamically when "Edit params" is clicked -->
+  <dialog id="variant-edit-dialog">
+    <form id="variant-edit-form" onsubmit="return _submitVariantEdit(event)" method="dialog">
+      <h3>Edit parameter overrides for <code id="variant-edit-name"></code></h3>
+      <div id="variant-edit-params" class="param-form"></div>
+      <menu>
+        <button type="button" onclick="document.getElementById('variant-edit-dialog').close()">Cancel</button>
+        <button type="submit">Save</button>
+      </menu>
+    </form>
+  </dialog>
+  <div class="interventions-list">
+    
+    <p class="empty-message">No interventions yet. Add one to record an experimental condition.</p>
+    
+  </div>
+
+  <details class="intervention-add-form-wrapper">
+    <summary class="btn-intervention-new">+ New intervention</summary>
+    <form id="intervention-new-form" onsubmit="return _submitInterventionAdd(event)">
+      <label>Name: <input name="name" required pattern="[a-zA-Z0-9_-]+"></label>
+      <label>Description: <textarea name="description" placeholder="Describe the experimental condition"></textarea></label>
+      <button type="submit">Add</button>
+    </form>
+  </details>
+  
+  
+</section>
+
+
+
+<section class="study-tab-panel" data-kind="simulate" id="panel-simulate" hidden>
+
+  <div id="reproduce-card" class="reproduce-card"
+       style="margin:0 0 14px 0;padding:10px 12px;background:#f8fafc;
+              border:1px solid #e2e8f0;border-radius:6px;font-size:0.9em"></div>
+
+
+
+  
+  
+  <div class="overview-section" id="ran-section">
+    <h3>What we ran <span class="muted" style="font-size:0.85em;font-weight:normal">(composite + parameters)</span></h3>
+    <p class="muted" style="font-size:0.88em">The composite(s) this study simulated, their parameters, replication, and run status. Click a composite to open it in the bigraph-loom explorer — live: configure &amp; run; published bundle: read-only wiring view.</p>
+    
+    <table class="cond-table" style="width:100%;border-collapse:collapse">
+      <thead><tr><th style="text-align:left">Run</th><th style="text-align:left">Composite</th><th style="text-align:left">Parameters</th><th style="text-align:left">Replication</th><th style="text-align:left">Status</th></tr></thead>
+      <tbody>
+      
+        <tr>
+          <td style="vertical-align:top"><strong>cp-sorting</strong></td>
+          <td style="vertical-align:top"><button type="button" class="action-btn" style="font-size:0.82em" onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_potts')">🧬 sorting.sorting_potts ↗</button></td>
+          <td style="vertical-align:top"><span class="muted">default parameters</span></td>
+          <td style="vertical-align:top" class="muted small">2 run(s)</td>
+          <td style="vertical-align:top"><span class="sim-status-pill sim-status-ran">complete</span></td>
+        </tr>
+      
+        <tr>
+          <td style="vertical-align:top"><strong>os-sorting</strong></td>
+          <td style="vertical-align:top"><button type="button" class="action-btn" style="font-size:0.82em" onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_overlapping_spheres')">🧬 sorting.sorting_overlapping_spheres ↗</button></td>
+          <td style="vertical-align:top"><span class="muted">default parameters</span></td>
+          <td style="vertical-align:top" class="muted small">2 run(s)</td>
+          <td style="vertical-align:top"><span class="sim-status-pill sim-status-ran">complete</span></td>
+        </tr>
+      
+        <tr>
+          <td style="vertical-align:top"><strong>vt-sorting</strong></td>
+          <td style="vertical-align:top"><button type="button" class="action-btn" style="font-size:0.82em" onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_voronoi')">🧬 sorting.sorting_voronoi ↗</button></td>
+          <td style="vertical-align:top"><span class="muted">default parameters</span></td>
+          <td style="vertical-align:top" class="muted small">2 run(s)</td>
+          <td style="vertical-align:top"><span class="sim-status-pill sim-status-ran">complete</span></td>
+        </tr>
+      
+        <tr>
+          <td style="vertical-align:top"><strong>vm-sorting</strong></td>
+          <td style="vertical-align:top"><button type="button" class="action-btn" style="font-size:0.82em" onclick="_openCompositeLoom('pbg_chaste.composites.sorting.sorting_vertex')">🧬 sorting.sorting_vertex ↗</button></td>
+          <td style="vertical-align:top"><span class="muted">default parameters</span></td>
+          <td style="vertical-align:top" class="muted small">2 run(s)</td>
+          <td style="vertical-align:top"><span class="sim-status-pill sim-status-ran">complete</span></td>
+        </tr>
+      
+      </tbody>
+    </table>
+    
+    <p class="muted small" style="margin-top:6px">2 recorded run(s): <code>wrapper-sorting-validation</code> (complete), <code></code> (complete)</p>
+  </div>
+  
+
+  
+
+  <!-- Configure & Run widget (SP-C) — native run launcher for this study -->
+  <div id="study-configure-run" style="margin-bottom:18px"></div>
+  <div class="panel" id="remote-run-panel" style="margin-bottom:18px">
+    <h3 style="margin-top:0">Run on remote (smsvpctest)</h3>
+    <p class="muted" style="font-size:0.9em">
+      Pushes the workspace's current branch, builds a simulator from that commit, and runs
+      it on the Ray backend. Results land as a run on this study. Requires GitHub login.
+    </p>
+    <form id="remote-run-form" onsubmit="return _submitRemoteRun(event)">
+      <label>Generations: <input name="num_generations" type="number" min="1" value="1" required></label>
+      <label>Seeds: <input name="num_seeds" type="number" min="1" value="1" required></label>
+      <label><input type="checkbox" name="run_parca" checked> Run ParCa</label>
+      <button type="submit" class="btn-mini" id="remote-run-btn">▶ Run on remote</button>
+    </form>
+    <div id="remote-run-progress" hidden></div>
+  </div>
+  <div class="runs-section">
+    <h3 class="section-title">Runs</h3>
+    <p class="muted" style="margin:0 0 10px 0;font-size:0.88em">
+      Per-run record of what was executed. Visualizations live in the
+      <a href="#" onclick="_setStudyTab('visualize');return false">Visualize</a> tab.
+    </p>
+    <table id="runs-table">
+      <thead>
+        <tr>
+          <th>Variant / Baseline</th>
+          <th>Composite</th>
+          <th>Steps</th>
+          <th>Started (UTC)</th>
+          <th>Duration</th>
+          <th>Status</th>
+          <th>Test results</th>
+          <th>Model changes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        
+        
+        <tr id="run-wrapper-sorting-validation"
+            data-run-id=""
+            data-spec-id=""
+            data-store-path=""
+            data-started-at="">
+          <td>
+            baseline
+            
+          </td>
+          <td>
+            <code style="font-size:0.82em">—</code>
+            
+          </td>
+          <td></td>
+          <td style="font-size:0.85em;white-space:nowrap"></td>
+          <td style="font-size:0.85em;white-space:nowrap"></td>
+          <td>
+            <span class="run-status run-status-complete">complete</span>
+            
+          </td>
+          
+          <td class="run-test-results" style="font-size:0.82em;white-space:nowrap">
+            
+            
+            
+            
+              
+              
+                
+                
+              
+                
+                
+              
+                
+                
+              
+              <span class="ok" title="authored pass">✓ 3</span>
+              
+              
+              <span class="muted" style="font-size:0.85em"> (authored)</span>
+            
+          </td>
+          <td>
+            
+            <span class="muted" style="font-size:0.82em">—</span>
+            
+          </td>
+          <td>
+            <button class="btn-view-run" data-run-id="">View</button>
+            <button class="btn-delete-run" data-run-id="">Delete</button>
+          </td>
+        </tr>
+        
+        
+        
+        <tr id="run-wrapper-sorting-validation"
+            data-run-id="wrapper-sorting-validation"
+            data-spec-id="cbc-02-onlattice-wrapper-extension"
+            data-store-path=""
+            data-started-at="">
+          <td>
+            baseline
+            
+              <div class="muted" style="font-size:0.78em">wrapper-sorting-validation</div>
+            
+          </td>
+          <td>
+            <code style="font-size:0.82em">cbc-02-onlattice-wrapper-extension</code>
+            
+          </td>
+          <td></td>
+          <td style="font-size:0.85em;white-space:nowrap"></td>
+          <td style="font-size:0.85em;white-space:nowrap"></td>
+          <td>
+            <span class="run-status run-status-complete">complete</span>
+            
+          </td>
+          
+          <td class="run-test-results" style="font-size:0.82em;white-space:nowrap">
+            
+            
+            
+            
+              <span class="muted">—</span>
+            
+          </td>
+          <td>
+            
+            <span class="muted" style="font-size:0.82em">—</span>
+            
+          </td>
+          <td>
+            <button class="btn-view-run" data-run-id="wrapper-sorting-validation">View</button>
+            <button class="btn-delete-run" data-run-id="wrapper-sorting-validation">Delete</button>
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<section class="study-tab-panel" data-kind="visualize" id="panel-visualize" hidden>
+  <div class="observables-section">
+    <h3 class="section-title">Readouts</h3>
+    <p class="muted">Quantities collected from each simulation run. Each row is an emitter <code>store_path</code> the composite will save; authored entries in <code>study.yaml</code> add names, descriptions, and units on top.</p>
+    <div id="readouts-table" data-study="cbc-02-onlattice-wrapper-extension">
+      <p class="empty-message">Loading readouts from the composite emit plan…</p>
+    </div>
+
+    
+    <details style="margin-top: 1.4em;">
+      <summary class="muted">How observables tie to Expected Behavior</summary>
+      <p style="font-size: 0.9em;">Observables can be referenced by name in an
+      <code>expected_behavior[i].measure</code> block (e.g. <code>kind: bulk_count, id:
+      "MONOMER0-160[c]"</code>). When the dashboard validates a study, it cross-checks
+      that every <code>measure</code> resolves to a declared observable, or to a
+      built-in helper.</p>
+    </details>
+    
+  </div>
+
+  <div class="viz-section">
+
+    
+    
+
+    <h3 class="section-title">Latest-run visualizations (auto-generated from <code>runs.db</code>)</h3>
+    <p class="muted" style="margin:0 0 8px 0;font-size:0.88em">
+      These charts re-render each time the page loads, against the most recent simulation in the study's <code>runs.db</code>.
+      They are also embedded into the downloadable investigation HTML report.
+    </p>
+    <div id="viz-charts-panel" class="charts-panel"></div>
+  </div>
+</section>
+
+<section class="study-tab-panel" data-kind="data" id="panel-data" hidden>
+  <div class="data-section">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h3 class="section-title" style="margin-right:auto">Analysis result files</h3>
+      <a id="data-download-all" class="btn-mini" style="display:none"
+         href="/api/study-analysis-zip?study=cbc-02-onlattice-wrapper-extension">Download all (.zip)</a>
+    </div>
+    <p class="muted" style="margin:0 0 10px 0;font-size:0.88em">
+      Tabular outputs (<code>.csv</code> / <code>.tsv</code>) written by this study's
+      Analysis steps — e.g. per-run analysis tables and exports. Click a file to
+      download it.
+    </p>
+    <div id="data-files" data-study="cbc-02-onlattice-wrapper-extension">
+      <p class="empty-message">Loading result files…</p>
+    </div>
+  </div>
+</section>
+
+<section class="study-tab-panel" data-kind="tests" id="panel-tests" hidden>
+  <div class="tests-header">
+    <h3>Behavioral Tests</h3>
+    <p class="muted" style="margin: 0 0 8px 0;">
+      Each prediction below is paired with a precise <code>given / measure / expect</code>
+      rule so one English sentence auto-generates one pytest assertion. The
+      generic evaluator in <code>tests/_behaviors.py</code> dispatches on
+      <code>measure.kind</code> + <code>expect.op</code> to compute pass/fail
+      against the latest simulation run.
+    </p>
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <button id="run-tests-btn" class="btn-primary">Run tests</button>
+      <div class="tests-summary muted" id="tests-summary">— no test results yet —</div>
+    </div>
+    <div class="tests-config" style="margin-top: 6px;">
+      <span class="badge">auto_discover: <code id="tests-auto-discover">true</code></span>
+      <span class="badge">data_source: <code id="tests-data-source">latest_run</code></span>
+    </div>
+  </div>
+
+  
+  
+  
+  
+    
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+    
+  
+    
+  
+  
+  <ul class="expected-behavior-list" id="tests-list" style="list-style:none; padding-left:0; margin-top: 12px;">
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-onlattice-emits-heterotypic-boundary"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="onlattice-emits-heterotypic-boundary"
+        data-classification="unclassified"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-unclassified">unclassified</span>
+        <strong style="font-size: 0.9em;">onlattice-emits-heterotypic-boundary</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">A Potts run under OnLatticeSimulation with the three update rules emits a non-zero total shared edge length.</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: authored</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">detail: CP runs under OnLatticeSimulation with all three Potts update rules and emits non-zero total shared edge length (heterotypicboundary.dat).</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"kind": "listener_path", "path": "total_length", "reduce": "median"}
+expect:  {"high": 1000000.0, "low": 0.0001, "op": "in_range"}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-ghost-nodes-excluded-from-cell-counts"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="ghost-nodes-excluded-from-cell-counts"
+        data-classification="unclassified"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-unclassified">unclassified</span>
+        <strong style="font-size: 0.9em;">ghost-nodes-excluded-from-cell-counts</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">A 20x20 Voronoi tissue with ghost layers reports exactly 400 real cells (ghosts excluded).</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: authored</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">detail: 20x20 VT tissue with 20 ghost layers reports exactly 400 real cells (test_vt_excludes_ghost_nodes_from_cell_count).</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"kind": "listener_path", "path": "num_cells", "reduce": "median"}
+expect:  {"high": 400, "low": 400, "op": "in_range"}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="expected-behavior-item" id="bt-cell-labelling-splits-population-in-half"
+        data-test-kind="behavioral"
+        
+        data-pytest-node="cell-labelling-splits-population-in-half"
+        data-classification="unclassified"
+        data-result="PASS"
+        style="margin: 0 0 10px 0; padding: 10px 12px; border-left: 4px solid #cbd5e1; background: #f8fafc; border-radius: 4px;">
+      
+        
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span class="bt-result" style="font-size: 0.75em; font-family: monospace; padding: 2px 8px; border-radius: 9999px; background: #d1fae5; color: #065f46">✓ PASS</span>
+        <span class="classification-pill classification-unclassified">unclassified</span>
+        <strong style="font-size: 0.9em;">cell-labelling-splits-population-in-half</strong>
+        
+      </div>
+      <div style="margin-top: 6px; font-size: 0.95em;">About half the real cells carry a CellLabel after the labelling step.</div>
+      
+      <div style="margin-top:6px;font-size:0.85em;padding:6px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:3px">
+        <strong>Latest result:</strong>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">evaluated_by: authored</code>
+        
+          <code style="font-family:ui-monospace,monospace;color:#475569;margin-right:8px">detail: RandomlyLabelCells(0.5) yields exactly 200 labelled of 400 across all four models (test_labelling_splits_population_in_half).</code>
+        
+      </div>
+      
+      
+      <details style="margin-top: 6px; font-size: 0.82em;">
+        <summary class="muted" style="cursor: pointer;">Assertion</summary>
+        <pre style="background:#fff; padding:8px; margin:4px 0 0 0; border:1px solid #e2e8f0; border-radius:3px; overflow-x:auto;">measure: {"kind": "listener_path", "path": "num_labelled", "reduce": "median"}
+expect:  {"high": 230, "low": 170, "op": "in_range"}</pre>
+      </details>
+      
+      
+      
+      
+    </li>
+    
+  </ul>
+  
+</section>
+
+<section class="study-tab-panel" data-kind="conclusions" id="panel-conclusions" hidden>
+
+  
+  
+  
+  
+  
+
+  
+  <div class="overview-section"><h2 class="overview-label">Verdict &amp; conclusion</h2>
+
+    
+
+    <div class="overview-section narrative-card" data-narrative-card="conclusion_verdicts" style="margin-bottom:18px">
+      <h3 class="overview-label">⚖️ Verdicts — three-track outcome
+        <span class="narrative-card-hint">(regression / biological / explanatory)</span>
+      </h3>
+      <p class="muted" style="margin:0 0 10px 0;font-size:0.88em">
+        Each track is independent. <em>Regression</em> answers "does the code
+        still build and run cleanly?", <em>biological</em> answers "does the
+        model match the literature?", <em>explanatory</em> answers "did we
+        learn something new?". Each <strong>result is computed</strong> from
+        canonical fields (gate evaluator, run status, finding tiers) — author
+        only the <em>basis</em> (the rationale) for each track.
+      </p>
+      <div class="narrative-grid">
+        <label class="narrative-row">
+          <span class="narrative-label">Regression compatibility</span>
+          <span class="narrative-input verdict-badge-computed" data-verdict-track="regression_compatibility"
+                title="Computed from run status (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+          <span class="muted small" style="margin-left:6px">computed from run status</span>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Regression basis</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="conclusion_verdicts.regression_compatibility.basis"
+                    placeholder="e.g. Builds cleanly; tests pass; pyproject deps unchanged."></textarea>
+        </label>
+        <label class="narrative-row">
+          <span class="narrative-label">Biological validation</span>
+          <span class="narrative-input verdict-badge-computed" data-verdict-track="biological_validation"
+                title="Computed from the gate evaluator (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+          <span class="muted small" style="margin-left:6px">computed from gate evaluator</span>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Biological basis</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="conclusion_verdicts.biological_validation.basis"
+                    placeholder="e.g. atp_fraction = 0.997, outside Boesen 2024 band [0.2, 0.5]."></textarea>
+        </label>
+        <label class="narrative-row">
+          <span class="narrative-label">Explanatory gain</span>
+          <span class="narrative-input verdict-badge-computed" data-verdict-track="explanatory_gain"
+                title="Computed from interpretation-tier findings (read-only)"
+                style="display:inline-block;padding:2px 12px;border-radius:9999px;font-weight:700;font-size:0.85em;background:#f1f5f9;color:#475569">PENDING</span>
+          <span class="muted small" style="margin-left:6px">computed from interpretation-tier findings</span>
+        </label>
+        <label class="narrative-row narrative-row-wide">
+          <span class="narrative-label">Explanatory basis</span>
+          <textarea class="narrative-input narrative-textarea" rows="2"
+                    data-narrative-path="conclusion_verdicts.explanatory_gain.basis"
+                    placeholder="e.g. Three findings worth keeping; design_pivot_required closed."></textarea>
+        </label>
+      </div>
+    </div>
+
+    
+
+  </div>
+
+  
+  <div class="overview-section"><h2 class="overview-label">Evidence</h2>
+
+    
+    
+    <p class="muted" style="margin:0 0 10px 0;font-size:0.85em">
+      Synthesised read-only from canonical fields — edit <code>findings</code>,
+      <code>limitations</code>, and <code>discovery_implications</code> to change
+      this (and the generated report) together.
+    </p>
+    <div class="conclusions-grid conclusions-synthesis">
+      <div class="conclusion-field">
+        <h3>Claims <span class="muted small">(from findings)</span></h3>
+        
+        <ul class="synthesis-list">
+          
+          <li>All four reachable models (CP, OS, VT, VM) construct with the paper&#39;s exact
+differential-adhesion configuration and emit heterotypicboundary.dat — verified end-to-end
+by spikes/spike_sorting.py at 5x5 cells, t=0.2, before any wrapper code was written.
+</li>
+          
+          <li>OS fractional boundary length is numerically DEGENERATE on the pristine honeycomb lattice,
+and the paper&#39;s 10h relaxation phase is what conditions it.
+</li>
+          
+          <li>Implemented: ChasteCellSortingProcess + _sorting_server.py drive all four models
+through the real engine. 11/11 tests pass (Docker-gated), and the cell_sorting
+composite runs end-to-end through process-bigraph, emitting fractional_length via
+RAMEmitter.
+</li>
+          
+          <li>REFUTATION (feeds cbc-03): mainline DiffusionForce cannot substitute for the paper&#39;s
+RandomMotionForce in the VT model. MeshBasedCellPopulation re-triangulates every
+timestep, creating fresh nodes with NO radius attribute; DiffusionForce divides its
+force by node radius and throws on radius 0, whereas RandomMotionForce has no radius
+division and is immune.
+</li>
+          
+          <li>DiffusionForce has no scaling setter; scaling is derived as C*T/viscosity with
+C = 2.636845e-8 (measured). To hit scaling = xi*radius (so per-node D = xi, matching
+RandomMotionForce), set viscosity=1 and AbsoluteTemperature = xi*radius/C.
+</li>
+          
+          <li>CellLabel has no Python read-back (HasCellProperty and the property collection are
+unbound), so per-cell labels are tracked by the stable cell id set at labelling time.
+The label still drives the C++ physics; only the reported labels[] array uses the id set.
+</li>
+          
+        </ul>
+        
+      </div>
+      <div class="conclusion-field">
+        <h3>Evidence <span class="muted small">(from findings)</span></h3>
+        
+        
+        <ul class="synthesis-list">
+          
+          <li>spikes/raw/*-heterotypicboundary.dat, produced by spikes/spike_sorting.py against
+chaste/pychaste:latest. All five columns present: time, heterotypic_length, total_length,
+num_heterotypic_pairs, total_pairs. CP ran under OnLatticeSimulation with all three update
+rules attached; OS/VT/VM under OffLatticeSimulation with their respective differential
+-adhesion forces. No custom classes, no trampolines.
+</li>
+          
+          <li>probes/probe9.py: NodesOnlyMesh default node radius is exactly 0.5 and honeycomb spacing is
+exactly 1.0, so neighbouring cells are exactly TANGENT (2r - d = 0.0000). The writer derives
+an OS &#34;shared edge&#34; from Heron&#39;s formula on the two radii and their separation, so tangency
+gives a zero-length chord. Observed: spikes/raw/os-heterotypicboundary.dat reads
+&#34;0.2  2.95028e-07  5.68982e-07  14  27&#34; — lengths at float-noise scale, and the ratio
+2.95e-07/5.69e-07 = 0.5185 is EXACTLY the pair-count ratio 14/27, i.e. the length weighting
+contributes nothing.
+</li>
+          
+          <li>pbg_chaste/_sorting_server.py, pbg_chaste/processes.py::ChasteCellSortingProcess,
+tests/test_cell_sorting.py (11 passed). End-to-end composite: CP 5x5 emitted
+fractional_length=0.379, random_motion=&#34;temperature&#34;, num_cells=25 through the
+RAMEmitter history. CP AC (onlattice + boundary), VT AC (16 real cells, ghosts
+excluded) and labelling AC (exact half across all four models) all pass on the
+real engine.
+</li>
+          
+          <li>probes/probe_vt3.py: after a single plain solve, all 64 VT mesh nodes report
+missing/zero radius despite being set to 0.5 before the solve — the remesh discards
+them. Setting radii once (probe_vt2.py, via pop.rGetMesh() which IS the same object)
+does not survive. OS and VM are unaffected (NodesOnlyMesh keeps radii; the vertex
+mesh&#39;s ReMesh preserves node attributes), so the incompatibility is specific to the
+mesh-based Delaunay population.
+</li>
+          
+          <li>probes/probe_fix.py; pbg_chaste/_sorting_server.py::DIFFUSION_SCALING_C.</li>
+          
+          <li>probes/probe_lab.py (no readback path), probe_id.py (GetCellId unique &amp; stable).</li>
+          
+        </ul>
+        
+      </div>
+    </div>
+    
+
+  </div>
+
+  
+  <div class="overview-section"><h2 class="overview-label">Follow-ups &amp; decisions</h2>
+
+    
+    
+
+    
+
+  </div>
+
+  
+  
+  <details class="overview-section"><summary class="overview-label">Limitations &amp; provenance</summary>
+
+    
+    
+    
+    <div class="conclusions-grid conclusions-synthesis">
+      <div class="conclusion-field">
+        <h3>Limitations <span class="muted small">(from limitations)</span></h3>
+        <p class="muted">None recorded.</p>
+      </div>
+      <div class="conclusion-field">
+        <h3>Next steps <span class="muted small">(from discovery implications)</span></h3>
+        <p class="muted">No follow-up proposals recorded yet.</p>
+      </div>
+    </div>
+
+  </details>
+  
+
+</section>
+
+</main>
+<script>window.__DASH_CONFIG__ = { mode: "snapshot", interactiveUrl: "https://github.com/vivarium-collective/pbg-chaste", basePath: "/pbg-chaste/dashboard" };</script>
+<script src="/pbg-chaste/dashboard/assets/data-source.js"></script>
+<script>
+window._studyName = "cbc-02-onlattice-wrapper-extension";
+window._study = null;  // populated by _bootstrapStudy() in study-detail.js
+
+// Save handler for the Conditions → Model settings editable rows.
+// POSTs to /api/study-expert-input-set (route kept for back-compat)
+// which patches study.yaml in place.
+// On success: flashes "saved" + updates the row's data-current attribute.
+// On failure: flashes the error (HTTP body) for ~5s.
+function _saveExpertInput(studyName, eiName, btn) {
+  var row = btn.closest('tr');
+  var input = row && row.querySelector('.cond-ei-input');
+  var flash = row && row.querySelector('.cond-ei-flash');
+  if (!input || !flash) return;
+  var raw = (input.value || '').trim();
+  // Coerce numeric inputs so yaml carries the right type
+  var val = raw;
+  if (input.type === 'number' && raw !== '') {
+    var n = Number(raw);
+    if (!isNaN(n)) val = n;
+  } else if (raw === '') {
+    val = null;
+  }
+  btn.disabled = true;
+  flash.className = 'cond-ei-flash';
+  flash.style.display = '';
+  flash.textContent = 'saving…';
+  fetch('/api/study-expert-input-set', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({study: studyName, name: eiName, current: val}),
+  }).then(function(r) {
+    return r.text().then(function(t) { return {ok: r.ok, status: r.status, body: t}; });
+  }).then(function(res) {
+    if (res.ok) {
+      flash.className = 'cond-ei-flash saved';
+      flash.textContent = '✓ saved';
+      setTimeout(function() { flash.style.display = 'none'; }, 2500);
+    } else {
+      flash.className = 'cond-ei-flash error';
+      flash.textContent = '✗ ' + (res.body || ('HTTP ' + res.status));
+    }
+  }).catch(function(err) {
+    flash.className = 'cond-ei-flash error';
+    flash.textContent = '✗ ' + String(err);
+  }).finally(function() {
+    btn.disabled = false;
+  });
+}
+
+// ── Seed a child study from this study's discovery_implications /
+//    follow_up_studies and make it appear in the investigation graph ──────
+// Both POST /api/study-seed-followup. On success they flash an inline
+// confirmation on the clicked button, then refresh the surface the user is
+// in: when embedded inside the investigation iframe, ask the parent to
+// re-render the investigation detail (and reload as a fallback); standalone,
+// reload the page so the seeded child is reflected.
+//
+// NOTE: these are defined AFTER /study-detail.js loads (see the script order
+// below) so they take precedence over the legacy _seedFollowupStudy there,
+// which navigates away instead of refreshing the embedded investigation.
+function _flashSeedBtn(btn, text, ok) {
+  if (!btn) return;
+  btn.textContent = text;
+  btn.style.borderColor = ok ? '#10b981' : '#dc2626';
+  btn.style.color = ok ? '#065f46' : '#991b1b';
+}
+function _afterSeedRefresh() {
+  // Embedded inside the investigation iframe → refresh the parent's graph.
+  if (window.parent && window.parent !== window) {
+    try {
+      if (window.parent._refreshInvestigationDetail) {
+        window.parent._refreshInvestigationDetail();
+        return;
+      }
+    } catch (e) { /* cross-origin or missing — fall through to reload */ }
+    try { window.parent.location.reload(); return; } catch (e) { /* fall through */ }
+  }
+  location.reload();
+}
+function _seedFollowup(payload, btn) {
+  var orig = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; _flashSeedBtn(btn, '… seeding', true); }
+  fetch('/api/study-seed-followup', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+  }).then(function(r) {
+    return r.json().then(function(d) { return {ok: r.ok, status: r.status, body: d}; })
+      .catch(function() { return {ok: r.ok, status: r.status, body: {}}; });
+  }).then(function(res) {
+    if (!res.ok || (res.body && res.body.error)) {
+      _flashSeedBtn(btn, '✗ ' + ((res.body && res.body.error) || ('HTTP ' + res.status)), false);
+      if (btn) btn.disabled = false;
+      return;
+    }
+    _flashSeedBtn(btn, '✓ added', true);
+    setTimeout(_afterSeedRefresh, 600);
+  }).catch(function(err) {
+    _flashSeedBtn(btn, '✗ ' + String(err), false);
+    if (btn) btn.disabled = false;
+  });
+}
+function _seedFollowupStudy(parent, idx) {
+  _seedFollowup({parent: parent, followup_idx: idx}, window.event && window.event.target);
+}
+function _seedFollowupProposal(parent, proposalId) {
+  _seedFollowup({parent: parent, proposal_id: proposalId}, window.event && window.event.target);
+}
+window._seedFollowupStudy = _seedFollowupStudy;
+window._seedFollowupProposal = _seedFollowupProposal;
+</script>
+<script src="/pbg-chaste/dashboard/assets/configure-run.js"></script>
+<script src="/pbg-chaste/dashboard/assets/study-detail.js"></script>
+<script>
+// Re-assert the refresh-aware seed handlers AFTER study-detail.js (which
+// defines its own navigate-away _seedFollowupStudy). The embedded
+// investigation view prefers staying in place over a full navigation.
+window._seedFollowupStudy = _seedFollowupStudy;
+window._seedFollowupProposal = _seedFollowupProposal;
+</script>
+<script>
+(function () {
+  var el = document.getElementById("study-configure-run");
+  if (!el || !window.ConfigureRun) return;
+  
+  var compositeRef = "pbg_chaste.composites.sorting.sorting_potts";
+  
+  var slug = window._studyName || "cbc-02-onlattice-wrapper-extension";
+  ConfigureRun.mount(el, { composite: compositeRef, target: "study", study: slug });
+  // Read-only bundle: there's no live backend to run on — hide the remote-run
+  // launcher (the Configure & Run widget already renders a disabled preview).
+  if (window.__DASH_CONFIG__ && window.__DASH_CONFIG__.mode === "snapshot") {
+    var rp = document.getElementById("remote-run-panel");
+    if (rp) rp.style.display = "none";
+  } else if (window._initRemoteRunPinned) {
+    // Live backend: relabel the remote-run card if pinned mode is enabled.
+    window._initRemoteRunPinned();
+  }
+})();
+</script>
+</body>
+</html>
