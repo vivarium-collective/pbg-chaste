@@ -136,6 +136,58 @@ findings:
     evidence: "processes.py ChasteCellSortingProcess raises for model='ca'; probes/probe4.py."
     status: supported
 
+reproducibility_metrics:
+  tutorial_source: |
+    Chaste/CellBasedComparison2017, TestCellSortingLiteratePaper.hpp (C++), paper
+    parameters restored (M_TIME_FOR_SIMULATION=100). Our build of that tutorial = cbc-01.
+  comparison: |
+    Same protocol both sides: 20x20 tissue, relax to t=10, label 50%, run to t=110, seed 0.
+    Measure: fractional boundary length = heterotypic edge length / total shared edge length,
+    from Chaste's HeterotypicBoundaryLengthWriter. Divergence = max |our - tutorial| over the
+    shared 1.0h sampling grid; endpoint = value at t=110.
+  metrics:
+    - observable: fractional_boundary_length
+      model: vm
+      tutorial_value: 0.271
+      reproduction_value: 0.271
+      max_abs_divergence: 0.012
+      verdict: match
+      note: "Near-identical; adhesion-dominated, DiffusionForce noise second-order."
+    - observable: fractional_boundary_length
+      model: cp
+      tutorial_value: 0.097
+      reproduction_value: 0.124
+      max_abs_divergence: 0.066
+      verdict: close
+      note: "All-mainline; no substitute classes. Both engulf (below the ~0.15 optimal-engulfment line)."
+    - observable: fractional_boundary_length
+      model: vt
+      tutorial_value: 0.440
+      reproduction_value: 0.507
+      max_abs_divergence: 0.070
+      verdict: close
+      note: "Both stall high (paper: VT plateaus). Achieved with NO random motion in our run (DiffusionForce incompatible with VT remesh, cbc-03)."
+    - observable: fractional_boundary_length
+      model: os
+      tutorial_value: 0.039
+      reproduction_value: 0.062
+      max_abs_divergence: 0.147
+      verdict: partial
+      note: "Largest residual. Both sort strongly; divergence tracks the DiffusionForce-vs-RandomMotionForce substitution (cbc-03)."
+    - observable: fractional_boundary_length
+      model: ca
+      tutorial_value: 0.231
+      reproduction_value: null
+      max_abs_divergence: null
+      verdict: blocked
+      note: "CA unsupported in PyChaste: DifferentialAdhesionCaSwitchingUpdateRule is custom to the tutorial repo, no constructible base."
+  qualitative:
+    ordering_reproduced: true
+    detail: "Paper Fig 3 ordering (VT stalls highest > VM > CP > OS sorts most) reproduced for all four PyChaste models."
+  caveats:
+    - "Single seed (0) on both sides; formal 10-seed spread not yet computed. Point divergences are small but a spread would make 'within run-to-run noise' quantitative."
+    - "Exact trajectory equality is not expected even at seed 0 (OS/VM consume the RNG differently via DiffusionForce; VT has no noise). The comparison is distributional in spirit."
+
 baseline:
   - name: cp-sorting
     composite: sorting_potts

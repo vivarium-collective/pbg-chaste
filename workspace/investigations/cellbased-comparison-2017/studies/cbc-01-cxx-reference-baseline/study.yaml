@@ -106,6 +106,50 @@ expected_behavior:
       cbc-04's acceptance is "within seed spread", so the spread must be measured here or that
       criterion has no scale to be judged against.
 
+reproducibility_metrics:
+  tutorial_source: |
+    Our own build of Chaste/CellBasedComparison2017 against chaste/release, compared to the
+    PUBLISHED paper (Osborne et al. 2017, Fig 3, k_pert=1). This study reproduces the tutorial
+    itself; it is the reference that cbc-04 then reproduces in PyChaste.
+  comparison: |
+    Fractional boundary length normalized by its value at labelling (t=10), as Fig 3 plots it.
+    Paper values are read approximately off Fig 3-left (black curves) — the paper ships curves,
+    not tables, so tutorial_value here is an eyeballed plateau, not an exact figure.
+  metrics:
+    - observable: normalized_fractional_length_endpoint
+      model: os
+      tutorial_value: 0.05
+      reproduction_value: 0.08
+      verdict: close
+      note: "Approx. from Fig 3; OS sorts most (fully separates)."
+    - observable: normalized_fractional_length_endpoint
+      model: cp
+      tutorial_value: 0.15
+      reproduction_value: 0.19
+      verdict: close
+    - observable: normalized_fractional_length_endpoint
+      model: ca
+      tutorial_value: 0.40
+      reproduction_value: 0.50
+      verdict: close
+    - observable: normalized_fractional_length_endpoint
+      model: vm
+      tutorial_value: 0.55
+      reproduction_value: 0.55
+      verdict: match
+    - observable: normalized_fractional_length_endpoint
+      model: vt
+      tutorial_value: 0.85
+      reproduction_value: 0.91
+      verdict: close
+      note: "VT stalls highest, matching the paper's 'OS/VT differ from CA/CP/VM' claim."
+  qualitative:
+    ordering_reproduced: true
+    detail: "Model ordering (VT > VM > CA > CP > OS by residual interface) matches Fig 3."
+  caveats:
+    - "Tutorial values are read off the published figure, not exact — this study's role is to establish OUR C++ run as the exact reference for cbc-04, which is compared numerically."
+    - "Single seed (0). The tutorial itself is single-run; the paper's curves are 10-seed means."
+
 baseline: []
 variants: []
 interventions: []

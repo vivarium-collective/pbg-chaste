@@ -105,6 +105,29 @@ variants: []
 interventions: []
 runs: []
 
+reproducibility_metrics:
+  tutorial_source: |
+    The tutorial's random motion is the custom RandomMotionForce (CellBasedComparison2017/
+    src/CellSorting), F = sqrt(2*xi*dt)/dt * W, giving free-diffusion D = xi. We substitute
+    mainline DiffusionForce, calibrated to the same D.
+  comparison: "Free-diffusion mean squared displacement over 144 independent walkers, xi=0.1, dt=0.005, t=1."
+  metrics:
+    - observable: free_diffusion_msd_2d
+      model: os_vm
+      tutorial_value: 0.400          # 4*D*t with D=xi=0.1 (RandomMotionForce)
+      reproduction_value: 0.383       # DiffusionForce, measured
+      relative_divergence: 0.043      # z = -0.56 (within noise)
+      verdict: match
+      note: "DiffusionForce calibrated scaling=xi*radius reproduces D=xi; matches RandomMotionForce in the free limit."
+    - observable: random_motion_availability
+      model: vt
+      tutorial_value: "RandomMotionForce (works)"
+      reproduction_value: "unavailable"
+      verdict: blocked
+      note: "DiffusionForce divides by node radius; VT's per-step remesh discards radii. Mechanical refutation, not a tuning issue."
+  qualitative:
+    detail: "Substitution sound for OS/VM (free limit + sorting trajectories track cbc-01); blocked for VT."
+
 early_findings:
   - summary: |
       SUPPORTED (free-diffusion limit, OS/VM): DiffusionForce, calibrated to scaling = xi*radius,

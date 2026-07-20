@@ -91,6 +91,37 @@ variants: []
 interventions: []
 runs: []
 
+reproducibility_metrics:
+  tutorial_source: |
+    Structural reproducibility of the tutorial's setup + measure: does our wrapper build the same
+    populations/forces/update-rules and emit the same HeterotypicBoundaryLengthWriter output as
+    TestCellSortingLiteratePaper.hpp?
+  comparison: "Tutorial config vs our wrapper, at the paper's 20x20 (measured in cbc-04 runs)."
+  metrics:
+    - observable: real_cell_count
+      model: all
+      tutorial_value: 400            # 20x20
+      reproduction_value: 400
+      verdict: match
+      note: "Ghost nodes excluded correctly (VT); the tutorial's assertion is GetNumRealCells()==400."
+    - observable: labelled_cell_count
+      model: all
+      tutorial_value: 200            # RandomlyLabelCells(..., 0.5)
+      reproduction_value: 200
+      verdict: match
+    - observable: metric_writer
+      model: all
+      tutorial_value: "heterotypicboundary.dat (5 cols)"
+      reproduction_value: "heterotypicboundary.dat (5 cols)"
+      verdict: match
+      note: "Same mainline writer attached; same column format. Fractional-length numbers compared in cbc-04."
+    - observable: model_coverage
+      model: all
+      tutorial_value: "5 (CA,CP,OS,VT,VM)"
+      reproduction_value: "4 (CP,OS,VT,VM)"
+      verdict: partial
+      note: "CA blocked (custom Ca switching rule); reported with evidence, not silently dropped."
+
 findings:
   - summary: |
       All four reachable models (CP, OS, VT, VM) construct with the paper's exact
