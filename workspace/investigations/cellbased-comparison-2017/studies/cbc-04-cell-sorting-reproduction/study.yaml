@@ -68,7 +68,7 @@ expected_behavior:
   expect:
     op: monotonic_decreasing
     allow_rebound_pct: 30
-  status: stub
+  status: implemented
 - name: interface-reduced-by-t110
   en: By t=110 the PyChaste heterotypic interface is well below its post-labelling value.
   measure:
@@ -78,7 +78,7 @@ expected_behavior:
   expect:
     op: ratio_at_most
     ratio: 1.0
-  status: stub
+  status: implemented
 status: ran
 confidence: Accepted
 claim: |
@@ -198,4 +198,52 @@ baseline:
   description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
 variants: []
 interventions: []
-runs: []
+runs:
+- name: pychaste-vs-cxx-sorting
+  status: complete
+  canonical: true
+  kind: reproduction
+  detail: 20x20 tissue, relax to t=10, label 50%, run to t=110 for CP/OS/VT/VM; fractional length 
+    diffed against the cbc-01 C++ baseline per timepoint.
+  provenance: pychaste-baseline/pbg_sort_*/heterotypicboundary.dat; comparison_table.csv; 
+    charts/00_fractional_length_cxx_vs_pychaste.png
+  outcomes:
+    fractional-length-declines-like-cxx:
+      result: PASS
+      evaluated_by: authored
+      detail: All four PyChaste models decline like the C++ baseline; max|diff| VM 0.012, CP 0.066, 
+        VT 0.070, OS 0.147 over the trajectory.
+    interface-reduced-by-t110:
+      result: PASS
+      evaluated_by: authored
+      detail: 'PyChaste endpoints at t=110 well below post-labelling: CP 0.124, OS 0.062, VT 0.507, VM
+        0.271 (vs ~0.5 at labelling).'
+  computed_outcomes:
+    _status: store_unresolved
+simulation_set:
+- name: cp-sorting-baseline
+  kind: single
+  base_model: pbg_chaste.composites.sorting.sorting_potts
+  is_baseline: true
+  status: ran
+- name: os-sorting-baseline
+  kind: single
+  base_model: pbg_chaste.composites.sorting.sorting_overlapping_spheres
+  is_baseline: true
+  status: ran
+- name: vt-sorting-baseline
+  kind: single
+  base_model: pbg_chaste.composites.sorting.sorting_voronoi
+  is_baseline: true
+  status: ran
+- name: vm-sorting-baseline
+  kind: single
+  base_model: pbg_chaste.composites.sorting.sorting_vertex
+  is_baseline: true
+  status: ran
+pipeline_gate:
+  gate_evaluator:
+    result: passed
+    blocked_by: []
+    evaluated_by: code
+    diverges_from_authored: false

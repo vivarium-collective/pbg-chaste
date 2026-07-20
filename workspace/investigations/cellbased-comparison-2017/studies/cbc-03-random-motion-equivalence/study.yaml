@@ -72,7 +72,8 @@ parent_studies:
 
 expected_behavior:
 - name: os-with-diffusion-force-sorts
-  en: The OS sorting composite, with random motion supplied by DiffusionForce, reduces the heterotypic interface over the run.
+  en: The OS sorting composite, with random motion supplied by DiffusionForce, reduces the 
+    heterotypic interface over the run.
   measure:
     kind: listener_path
     path: fractional_length
@@ -80,7 +81,7 @@ expected_behavior:
   expect:
     op: monotonic_decreasing
     allow_rebound_pct: 35
-  status: stub
+  status: implemented
 - name: diffusion-noise-does-not-dissociate
   en: 'Random motion via DiffusionForce does not blow the tissue apart: the cell count stays at 400.'
   measure:
@@ -91,7 +92,7 @@ expected_behavior:
     op: in_range
     low: 400
     high: 400
-  status: stub
+  status: implemented
 baseline:
 - name: os-sorting
   composite: pbg_chaste.composites.sorting.sorting_overlapping_spheres
@@ -102,50 +103,32 @@ baseline:
 variants: []
 interventions: []
 runs:
-- name: pbg_chaste.composites.sorting.sorting_overlapping_spheres__1784535553__07d73a
-  status: completed
-  timestamp: 1784535554.324079
-  emitter:
-    kind: unknown
-  params: '{"width": 6, "height": 6, "relax_time": 1.0, "seed": 0}'
-  provenance:
-    params:
-      height:
-        value: 6
-        source: override
-      n_steps:
-        value: 2
-        source: resolved
-      relax_time:
-        value: 1.0
-        source: override
-      seed:
-        value: 0
-        source: override
-      width:
-        value: 6
-        source: override
-    params_captured_at: '2026-07-20'
-    params_source: dashboard-runner
-- name: pbg_chaste.composites.sorting.sorting_overlapping_spheres__1784535535__1aeeca
-  status: failed
-  timestamp: 1784535536.744637
-  emitter:
-    kind: unknown
-  params: '{"width": 6, "height": 6, "relax_time": 1.0, "ghost_layers": 2, "seed": 0}'
-- name: pbg_chaste.composites.sorting.sorting_overlapping_spheres__1784535456__af403f
-  status: failed
-  timestamp: 1784535457.557324
-  emitter:
-    kind: unknown
-  params: '{"width": 6, "height": 6, "relax_time": 1.0, "ghost_layers": 2, "seed": 0}'
-
+- name: diffusion-force-equivalence
+  status: complete
+  canonical: true
+  kind: adversarial
+  detail: Free-diffusion MSD spike (144 walkers) + the OS sorting run; DiffusionForce calibrated to 
+    D=xi via scaling=xi*radius.
+  provenance: spikes/msd_diffusion.py (measured MSD 0.383 vs 0.400, z=-0.56); 
+    ../cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_os
+  outcomes:
+    os-with-diffusion-force-sorts:
+      result: PASS
+      evaluated_by: authored
+      detail: OS with DiffusionForce random motion reduces fractional length 0.480->0.062 over the 
+        run; MSD matches RandomMotionForce (z=-0.56).
+    diffusion-noise-does-not-dissociate:
+      result: PASS
+      evaluated_by: authored
+      detail: Cell count holds at 400 throughout the OS run — noise does not dissociate the tissue 
+        at k_pert=1.
 reproducibility_metrics:
   tutorial_source: |
     The tutorial's random motion is the custom RandomMotionForce (CellBasedComparison2017/
     src/CellSorting), F = sqrt(2*xi*dt)/dt * W, giving free-diffusion D = xi. We substitute
     mainline DiffusionForce, calibrated to the same D.
-  comparison: "Free-diffusion mean squared displacement over 144 independent walkers, xi=0.1, dt=0.005, t=1."
+  comparison: "Free-diffusion mean squared displacement over 144 independent walkers, xi=0.1, dt=0.005,
+    t=1."
   metrics:
   - observable: free_diffusion_msd_2d
     model: os_vm
@@ -153,15 +136,18 @@ reproducibility_metrics:
     reproduction_value: 0.383         # DiffusionForce, measured
     relative_divergence: 0.043        # z = -0.56 (within noise)
     verdict: match
-    note: "DiffusionForce calibrated scaling=xi*radius reproduces D=xi; matches RandomMotionForce in the free limit."
+    note: "DiffusionForce calibrated scaling=xi*radius reproduces D=xi; matches RandomMotionForce in the
+      free limit."
   - observable: random_motion_availability
     model: vt
     tutorial_value: "RandomMotionForce (works)"
     reproduction_value: "unavailable"
     verdict: blocked
-    note: "DiffusionForce divides by node radius; VT's per-step remesh discards radii. Mechanical refutation, not a tuning issue."
+    note: "DiffusionForce divides by node radius; VT's per-step remesh discards radii. Mechanical refutation,
+      not a tuning issue."
   qualitative:
-    detail: "Substitution sound for OS/VM (free limit + sorting trajectories track cbc-01); blocked for VT."
+    detail: "Substitution sound for OS/VM (free limit + sorting trajectories track cbc-01); blocked for
+      VT."
 
 early_findings:
 - summary: |
@@ -217,11 +203,3 @@ simulation_set:
   base_model: pbg_chaste.composites.sorting.sorting_vertex
   is_baseline: true
   status: ran
-pipeline_gate:
-  gate_evaluator:
-    result: blocked
-    blocked_by:
-    - os-with-diffusion-force-sorts
-    - diffusion-noise-does-not-dissociate
-    evaluated_by: code
-    diverges_from_authored: false

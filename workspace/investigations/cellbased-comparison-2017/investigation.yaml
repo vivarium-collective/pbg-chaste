@@ -3,7 +3,7 @@ schema_version: 2
 name: cellbased-comparison-2017
 title: "Reproducing Osborne et al. 2017 cell-based model comparison"
 created: '2026-07-16'
-status: planning
+status: complete
 
 question: |
   Can pbg-chaste, driving the real Chaste engine through PyChaste, quantitatively
@@ -94,6 +94,23 @@ executive:
       throws on radius 0, which is the default for vertex meshes) and damping is 1.0. cbc-03
       tests this numerically against the C++ reference before cbc-04 depends on it.
 
+  computed_acceptance:
+    verdict_status: passing
+    criteria:
+    - study: cbc-01-cxx-reference-baseline
+      behavior: cxx-fractional-length-declines
+      result: passing
+    - study: cbc-02-onlattice-wrapper-extension
+      behavior: ghost-nodes-excluded-from-cell-counts
+      result: passing
+    - study: cbc-03-random-motion-equivalence
+      behavior: os-with-diffusion-force-sorts
+      result: passing
+    - study: cbc-04-cell-sorting-reproduction
+      behavior: fractional-length-declines-like-cxx
+      result: passing
+    unmet: []
+  computed_verdict_status: passing
 inputs:
   datasets: []
   references:

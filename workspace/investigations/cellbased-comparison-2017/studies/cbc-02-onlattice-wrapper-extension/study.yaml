@@ -68,7 +68,7 @@ expected_behavior:
     op: in_range
     low: 0.0001
     high: 1000000.0
-  status: stub
+  status: implemented
 - name: ghost-nodes-excluded-from-cell-counts
   en: A 20x20 Voronoi tissue with ghost layers reports exactly 400 real cells (ghosts excluded).
   measure:
@@ -79,7 +79,7 @@ expected_behavior:
     op: in_range
     low: 400
     high: 400
-  status: stub
+  status: implemented
 - name: cell-labelling-splits-population-in-half
   en: About half the real cells carry a CellLabel after the labelling step.
   measure:
@@ -90,7 +90,7 @@ expected_behavior:
     op: in_range
     low: 170
     high: 230
-  status: stub
+  status: implemented
 baseline:
 - name: cp-sorting
   composite: pbg_chaste.composites.sorting.sorting_potts
@@ -106,7 +106,31 @@ baseline:
   description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
 variants: []
 interventions: []
-runs: []
+runs:
+- name: wrapper-sorting-validation
+  status: complete
+  canonical: true
+  kind: pychaste-wrapper
+  detail: ChasteCellSortingProcess drives CP/OS/VT/VM through the real engine; validated by 11 
+    Docker-gated pytest and the 20x20 cbc-04 runs.
+  provenance: tests/test_cell_sorting.py (11 passed); 
+    ../cbc-04-cell-sorting-reproduction/pychaste-baseline/pbg_sort_*
+  outcomes:
+    onlattice-emits-heterotypic-boundary:
+      result: PASS
+      evaluated_by: authored
+      detail: CP runs under OnLatticeSimulation with all three Potts update rules and emits non-zero
+        total shared edge length (heterotypicboundary.dat).
+    ghost-nodes-excluded-from-cell-counts:
+      result: PASS
+      evaluated_by: authored
+      detail: 20x20 VT tissue with 20 ghost layers reports exactly 400 real cells 
+        (test_vt_excludes_ghost_nodes_from_cell_count).
+    cell-labelling-splits-population-in-half:
+      result: PASS
+      evaluated_by: authored
+      detail: RandomlyLabelCells(0.5) yields exactly 200 labelled of 400 across all four models 
+        (test_labelling_splits_population_in_half).
 
 reproducibility_metrics:
   tutorial_source: |

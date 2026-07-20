@@ -87,7 +87,7 @@ expected_behavior:
   expect:
     op: monotonic_decreasing
     allow_rebound_pct: 25
-  status: stub
+  status: implemented
 - name: cxx-interface-more-than-halves
   en: By t=110 the heterotypic interface is well below its post-labelling value (sorting occurred).
   measure:
@@ -97,7 +97,7 @@ expected_behavior:
   expect:
     op: ratio_at_most
     ratio: 1.0
-  status: stub
+  status: implemented
 reproducibility_metrics:
   tutorial_source: |
     Our own build of Chaste/CellBasedComparison2017 against chaste/release, compared to the
@@ -158,7 +158,27 @@ baseline:
   description: Vertex sorting (Nagai-Honda differential adhesion + diffusion noise).
 variants: []
 interventions: []
-runs: []
+runs:
+- name: cxx-sorting-baseline
+  status: complete
+  canonical: true
+  kind: cxx-tutorial
+  detail: Built CellBasedComparison2017 against chaste/release on the mini; 
+    TestCellSortingLiteratePaper to t=100 for all five models, paper parameter restored 
+    (M_TIME_FOR_SIMULATION=100).
+  provenance: cxx-baseline/CellSorting/{Ca,Potts,Node,Mesh,Vertex}/heterotypicboundary.dat; 
+    cxx-baseline/fractional_length_by_model.csv
+  outcomes:
+    cxx-fractional-length-declines:
+      result: PASS
+      evaluated_by: authored
+      detail: All five models' fractional length declines from the post-labelling value (reduction 
+        via sorting_analysis); normalized endpoints OS 0.08, CP 0.19, CA 0.50, VM 0.55, VT 0.91.
+    cxx-interface-more-than-halves:
+      result: PASS
+      evaluated_by: authored
+      detail: 'Every model ends below its post-labelling value (ratio_at_most 1.0): CP/OS/CA/VM drop substantially;
+        VT declines least (0.485->0.440).'
 
 prep_findings:
 - summary: |
