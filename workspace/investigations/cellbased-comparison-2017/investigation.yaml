@@ -117,7 +117,8 @@ inputs:
   - osborne2017
   expert_docs:
   - name: "Osborne et al. 2017 (PLOS Comput Biol) — full text"
-    path: inputs/papers/osborne2017-cellbased-comparison.pdf
+    path: 
+      workspace/investigations/cellbased-comparison-2017/inputs/papers/osborne2017-cellbased-comparison.pdf
 
 proposed_inputs:
   _note: "Why this block exists — agent-suggested inputs the expert did NOT provide."
@@ -238,7 +239,8 @@ studies:
 
 expert_docs:
 - name: "Osborne et al. 2017 (PLOS Comput Biol) — full text"
-  path: inputs/papers/osborne2017-cellbased-comparison.pdf
+  path: 
+    workspace/investigations/cellbased-comparison-2017/inputs/papers/osborne2017-cellbased-comparison.pdf
 
 competing_frameworks:
 - name: "Compare against the published figures instead of regenerated C++ output"
