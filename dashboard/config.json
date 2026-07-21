@@ -1,7 +1,7 @@
 {
   "mode": "snapshot",
   "smsApiBase": "",
-  "repo": "https://github.com/vivarium-collective/pbg-chaste.git",
-  "commit": "1f03a64d13399f283ab3b0cea6dc870e07947d13",
-  "generated_from_ref": "cellbased-comparison-2017"
+  "repo": "https://github.com/vivarium-collective/pbg-chaste",
+  "commit": "5be477b0418e0881ffa2e9f51137c617212d0dd7",
+  "generated_from_ref": "main"
 }
