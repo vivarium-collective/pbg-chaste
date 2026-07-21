@@ -1,0 +1,5 @@
+{
+  "title": "Regenerated C++ baseline vs the published figure",
+  "caption": "Normalized fractional-length endpoint per model \u2014 teal = Osborne et al. 2017 Fig 3, hollow coral = our regenerated C++ run. Models ordered most-sorted (OS) to least (VT).",
+  "interpretation": "Every model lands within 0.06 of the published endpoint and the ordering (OS < CP < CA < VM < VT) matches Fig 3 exactly, confirming the build + paper-parameter restoration."
+}
