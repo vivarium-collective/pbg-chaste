@@ -45,12 +45,16 @@ jobs:
         run: uv python install 3.12.9
 
       - name: Install dependencies (incl. vivarium-workbench)
-        run: uv sync --extra dev || uv sync
+        # The `workspace` extra carries PyYAML + jinja2 + vivarium-workbench that
+        # scripts/publish_investigation_reports.py imports; without it the
+        # generate step dies on `ModuleNotFoundError: No module named 'yaml'`.
+        run: uv sync --extra dev --extra workspace || uv sync --extra dev || uv sync
 
       - name: Install Playwright + Chromium
         run: |
           uv pip install playwright
-          uv run playwright install --with-deps chromium
+          source .venv/bin/activate
+          playwright install --with-deps chromium
 
       - name: Generate investigation reports
         id: gen
@@ -59,7 +63,11 @@ jobs:
         # Keep going on a per-report failure so good reports still publish.
         run: |
           set +e
-          uv run python scripts/publish_investigation_reports.py \
+          # Use the synced venv directly, NOT `uv run` — `uv run` re-syncs to
+          # the project's base deps and drops the `dev`/`workspace` extras
+          # (PyYAML, vivarium-workbench, Playwright), which this script needs.
+          source .venv/bin/activate
+          python scripts/publish_investigation_reports.py \
             --workspace . --out reports/published
           echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
