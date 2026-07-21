@@ -1,9 +1,10 @@
 """Composite-generator registration + assembly tests (no Docker needed)."""
 
 import pytest
-from process_bigraph import Composite, allocate_core
+from process_bigraph import Composite
 
 from pbg_chaste.composites import build_document
+from pbg_chaste.core import build_core
 
 HEADLINE = ["mesh_uniform", "mesh_delta_notch", "vertex_tyson_novak",
             "node_stochastic", "mesh_tyson_novak", "chaste_simulation"]
@@ -37,7 +38,10 @@ def test_vertex_delta_notch_rejected():
 
 
 def test_document_assembles_in_composite():
-    core = allocate_core()
+    # build_core() registers this workspace's own edges (an editable checkout
+    # is invisible to allocate_core()'s dist-walker), so the composite can
+    # resolve local:ChasteSimulationProcess — matching how the dashboard runs.
+    core = build_core()
     doc = build_document("mesh", "uniform", width=2, height=2)
     sim = Composite({"state": doc}, core=core)  # schema reconciliation
     assert sim is not None
