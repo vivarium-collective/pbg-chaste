@@ -56,7 +56,9 @@ jobs:
           # CI run instead of `uv pip install` aborting with
           # "does not appear to be a Python project".
           if [ -f pyproject.toml ] || [ -f setup.py ]; then
-            uv pip install -e ".[dev]"
+            # Include the `workspace` extra so scripts/lint-workspace.py has
+            # PyYAML + jsonschema (they live there, not in `dev`).
+            uv pip install -e ".[dev,workspace]" || uv pip install -e ".[dev]"
           else
             echo "No root pyproject.toml/setup.py found — installing dev tooling only."
             uv pip install pytest
