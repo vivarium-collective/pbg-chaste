@@ -1,0 +1,5 @@
+{
+  "title": "OS boundary length is degenerate on the pristine lattice",
+  "caption": "Honeycomb neighbours are exactly tangent (2r\u2212d=0), so the writer's Heron's-formula shared edge is zero-length; the recorded OS metric equals the pair-count ratio (14/27) with no length contribution.",
+  "interpretation": "Not a bug but the paper's own OS configuration \u2014 the 10 h relaxation is what conditions it, so OS must not be sampled before compression (a constraint carried into cbc-04)."
+}

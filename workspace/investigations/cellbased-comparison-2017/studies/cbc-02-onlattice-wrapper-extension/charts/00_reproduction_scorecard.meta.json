@@ -1,0 +1,5 @@
+{
+  "title": "Structural reproducibility \u2014 wrapper vs paper setup",
+  "caption": "Each check compares the tutorial's assertion against what the ChasteCellSortingProcess wrapper produces on the real engine.",
+  "interpretation": "Cell count, 50% labelling and the boundary-length writer match exactly; coverage is 4/5 (CA blocked by a custom switching rule, reported with evidence)."
+}

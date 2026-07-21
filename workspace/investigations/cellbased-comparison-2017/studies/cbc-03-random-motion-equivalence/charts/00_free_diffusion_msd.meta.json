@@ -1,0 +1,5 @@
+{
+  "title": "Free-diffusion limit \u2014 DiffusionForce vs RandomMotionForce",
+  "caption": "Mean squared displacement of 144 non-interacting walkers under mainline DiffusionForce (coral, \u00b1SEM) against the analytic 4\u00b7D\u00b7t line the paper's RandomMotionForce also follows (D = xi = 0.1).",
+  "interpretation": "Measured MSD 0.383 vs theory 0.400 (z = \u22120.56) \u2014 a match. The calibration scaling = xi\u00b7radius makes DiffusionForce a sound substitute in the free limit (OS, VM)."
+}

@@ -1,0 +1,5 @@
+{
+  "title": "DiffusionForce substitution \u2014 viability by model",
+  "caption": "Which models can use mainline DiffusionForce for the paper's random motion: sound for OS and VM, mechanically blocked for VT.",
+  "interpretation": "OS/VM keep node radii so DiffusionForce runs and matches the free limit; VT's per-step remesh discards radii, so VT remains deterministic \u2014 a refutation carried from cbc-02."
+}
