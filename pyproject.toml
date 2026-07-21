@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Process-bigraph wrapper for Chaste multi-cellular + sub-cellular simulation (real engine via the chaste/pychaste Docker image)"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{name = "Eran Agmon", email = "agmon.eran@gmail.com"}]
 classifiers = [
     "License :: OSI Approved :: BSD License",
@@ -34,6 +34,13 @@ workspace = [
     "vivarium-workbench",
 ]
 dev = ["pytest", "matplotlib", "plotly", "bigraph-viz2"]
+
+[tool.uv.sources]
+# vivarium-workbench is not on PyPI. Point uv at the git repo so `uv sync`
+# resolves it (any invocation resolves the whole project, including the
+# `workspace` extra) instead of failing with "not found in the package
+# registry". Local development still uses an editable install in the venv.
+vivarium-workbench = { git = "https://github.com/vivarium-collective/vivarium-workbench.git", branch = "main" }
 
 [project.urls]
 Homepage = "https://github.com/vivarium-collective/pbg-chaste"
