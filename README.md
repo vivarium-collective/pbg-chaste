@@ -1,9 +1,9 @@
 # pbg-chaste
 
 <!-- BEGIN dashboard -->
-> ## 🔬 [Read-only workbench →](https://vivarium-collective.github.io/pbg-chaste/dashboard/)
+> ## 🔬 [Read-only workbench →](https://vivarium-collective.github.io/viva-chaste/dashboard/)
 >
-> **The full vivarium-workbench, live in your browser — no install.** Every investigation, study, composite and simulation, browsable with no server. Prefer a written write-up? See the [investigation reports](https://vivarium-collective.github.io/pbg-chaste/). Auto-published from `main` on every merge.
+> **The full vivarium-workbench, live in your browser — no install.** Every investigation, study, composite and simulation, browsable with no server. Prefer a written write-up? See the [investigation reports](https://vivarium-collective.github.io/viva-chaste/). Auto-published from `main` on every merge.
 <!-- END dashboard -->
 
 Process-bigraph wrapper for **[Chaste](https://github.com/Chaste/Chaste)** — the
