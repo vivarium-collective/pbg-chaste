@@ -9,7 +9,7 @@ investigation, and expose the paper's fractional-boundary-length measure.
 
 from __future__ import annotations
 
-from pbg_superpowers.composite_generator import composite_generator
+from viva_superpowers.composite_generator import composite_generator
 
 from ..processes import SORTING_MODELS
 
