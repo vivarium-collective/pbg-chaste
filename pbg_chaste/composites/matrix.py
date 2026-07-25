@@ -8,7 +8,7 @@ Each builds a document around the real :class:`ChasteSimulationProcess`.
 
 from __future__ import annotations
 
-from pbg_superpowers.composite_generator import composite_generator
+from viva_superpowers.composite_generator import composite_generator
 
 from ..processes import CELL_CYCLES, POPULATIONS
 

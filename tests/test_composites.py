@@ -12,13 +12,13 @@ HEADLINE = ["mesh_uniform", "mesh_delta_notch", "vertex_tyson_novak",
 
 @pytest.mark.parametrize("name", HEADLINE)
 def test_generator_is_registered(name):
-    from pbg_superpowers.composite_generator import _REGISTRY
+    from viva_superpowers.composite_generator import _REGISTRY
     matches = [eid for eid in _REGISTRY if eid.endswith(f".{name}")]
     assert matches, f"{name} missing; have {sorted(_REGISTRY)[:8]}"
 
 
 def test_generators_discoverable():
-    from pbg_superpowers.composite_generator import discover_generators
+    from viva_superpowers.composite_generator import discover_generators
     gens = discover_generators()
     assert any("pbg_chaste" in g for g in gens), "no pbg_chaste generators discovered"
 
