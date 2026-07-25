@@ -1,7 +1,7 @@
 {
   "mode": "snapshot",
   "smsApiBase": "",
-  "repo": "https://github.com/vivarium-collective/pbg-chaste",
-  "commit": "567097033068349d2023a63a135c316ffe47ad53",
+  "repo": "https://github.com/vivarium-collective/viva-chaste",
+  "commit": "193665169c8249b20821d938c7ede149bc8c2bb2",
   "generated_from_ref": "main"
 }
