@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "bigraph-schema>=0.0.60",
     "process-bigraph>=0.0.66",
+    "viva-superpowers",
     # Chaste itself runs inside the chaste/pychaste Docker image, not as a
     # pip dependency — see README. Docker is the only host requirement.
 ]
@@ -33,9 +34,10 @@ workspace = [
     "pypdf>=4.0",
     "vivarium-workbench",
 ]
-dev = ["pytest", "matplotlib", "plotly", "bigraph-viz2"]
+dev = ["pytest", "pyyaml", "jsonschema", "matplotlib", "plotly", "bigraph-viz2"]
 
 [tool.uv.sources]
+viva-superpowers = { git = "https://github.com/vivarium-collective/viva-superpowers.git", branch = "main" }
 # vivarium-workbench is not on PyPI. Point uv at the git repo so `uv sync`
 # resolves it (any invocation resolves the whole project, including the
 # `workspace` extra) instead of failing with "not found in the package
