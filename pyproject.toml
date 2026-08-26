@@ -33,7 +33,7 @@ workspace = [
     "pypdf>=4.0",
     "vivarium-workbench",
 ]
-dev = ["pytest", "pyyaml", "matplotlib", "plotly", "bigraph-viz2"]
+dev = ["pytest", "pyyaml", "jsonschema", "matplotlib", "plotly", "bigraph-viz2"]
 
 [tool.uv.sources]
 # vivarium-workbench is not on PyPI. Point uv at the git repo so `uv sync`
